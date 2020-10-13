@@ -209,7 +209,7 @@ export default defineComponent({
     name: String,
     id: String,
     modelValue: {
-      type: [Array, String],
+      type: [Array, String, Number],
     },
     autocomplete: {
       type: String,
@@ -434,7 +434,8 @@ export default defineComponent({
   },
 })
 </script>
-<style lang="scss" scoped>
+
+<style>
 .el-popper {
   padding: 0;
 }
