@@ -50,7 +50,7 @@
     "html-webpack-plugin": "^4.3.0",
     "husky": "^4.2.5",
     "import-from": "^3.0.0",
-    "jest": "^26.4.2",
+    "jest": "^26.5.3",
     "lerna": "^3.22.1",
     "lint-staged": "^10.4.0",
     "markdown-it": "^11.0.0",
