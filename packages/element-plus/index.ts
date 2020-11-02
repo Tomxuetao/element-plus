@@ -34,12 +34,17 @@ import ElTabs from '@element-plus/tabs'
 import ElTooltip from '@element-plus/tooltip'
 import ElSlider from '@element-plus/slider'
 import ElInput from '@element-plus/input'
+import ElLoading from '@element-plus/loading'
 import ElTransfer from '@element-plus/transfer'
 import ElDialog from '@element-plus/dialog'
 import ElCalendar from '@element-plus/calendar'
 import ElInfiniteScroll from '@element-plus/infinite-scroll'
 import ElMessage from '@element-plus/message'
 import ElDrawer from '@element-plus/drawer'
+import ElTableInstall, {
+  Table as ElTable,
+  TableColumn as ElTableColumn,
+} from '@element-plus/table'
 import ElPopconfirm from '@element-plus/popconfirm'
 import ElForm from '@element-plus/form'
 import ElUpload from '@element-plus/upload'
@@ -48,7 +53,11 @@ import ElColorPicker from '@element-plus/color-picker'
 import ElSelect from '@element-plus/select'
 import ElTimeSelect from '@element-plus/time-select'
 import ElPagination from '@element-plus/pagination'
+import ElMessageBox from '@element-plus/message-box'
 import ElInputNumber from '@element-plus/input-number'
+import ElPopover from '@element-plus/popover'
+import ElCascader from '@element-plus/cascader'
+import ElCascaderPanel from '@element-plus/cascader-panel'
 
 export {
   ElAlert,
@@ -85,12 +94,15 @@ export {
   ElTooltip,
   ElSlider,
   ElInput,
+  ElLoading,
   ElTransfer,
   ElDialog,
   ElCalendar,
   ElInfiniteScroll,
   ElMessage,
   ElDrawer,
+  ElTable,
+  ElTableColumn,
   ElPopconfirm,
   ElForm,
   ElUpload,
@@ -99,10 +111,24 @@ export {
   ElSelect,
   ElTimeSelect,
   ElPagination,
+  ElMessageBox,
   ElInputNumber,
+  ElPopover,
+  ElCascader,
+  ElCascaderPanel,
 }
 
-const install = (app: App): void => {
+interface InstallOptions {
+  size: ComponentSize
+  zIndex: number
+}
+
+const defaultInstallOpt =  {
+  size: '' as ComponentSize,
+  zIndex: 2000,
+}
+
+const install = (app: App, opt: InstallOptions = defaultInstallOpt): void => {
   ElAlert(app)
   ElAvatar(app)
   ElAutocomplete(app)
@@ -138,12 +164,15 @@ const install = (app: App): void => {
   ElTooltip(app)
   ElSlider(app)
   ElInput(app)
+  ElLoading(app)
   ElTransfer(app)
   ElDialog(app)
   ElCalendar(app)
   ElInfiniteScroll(app)
   ElMessage(app)
+  ElMessageBox(app)
   ElDrawer(app)
+  ElTableInstall(app)
   ElPopconfirm(app)
   ElForm(app)
   ElUpload(app)
@@ -153,6 +182,11 @@ const install = (app: App): void => {
   ElTimeSelect(app)
   ElPagination(app)
   ElInputNumber(app)
+  ElPopover(app)
+  ElCascader(app)
+  ElCascaderPanel(app)
+
+  app.config.globalProperties.$ELEMENT = opt
 }
 
 const elementUI = {
