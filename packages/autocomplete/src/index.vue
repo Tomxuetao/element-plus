@@ -1,98 +1,101 @@
 <template>
-  <div
-    v-clickoutside="close"
-    class="el-autocomplete"
-    role="combobox"
-    aria-haspopup="listbox"
-    :aria-expanded="suggestionVisible"
-    :aria-owns="id"
+  <el-popper
+    ref="popper"
+    v-model:visible="suggestionVisible"
+    :placement="placement"
+    :popper-class="popperClass"
+    :append-to-body="popperAppendToBody"
+    :offset="6"
+    pure
+    manual-mode
+    effect="light"
+    trigger="click"
   >
-    <el-input
-      ref="inputRef"
-      v-bind="$attrs"
-      :model-value="modelValue"
-      @input="handleInput"
-      @change="handleChange"
-      @focus="handleFocus"
-      @blur="handleBlur"
-      @clear="handleClear"
-      @keydown.up.prevent="highlight(highlightedIndex - 1)"
-      @keydown.down.prevent="highlight(highlightedIndex + 1)"
-      @keydown.enter.prevent="handleKeyEnter"
-      @keydown.tab.prevent="close"
-    >
-      <template v-if="$slots.prepend" #prepend>
-        <slot name="prepend"></slot>
-      </template>
-      <template v-if="$slots.append" #append>
-        <slot name="append"></slot>
-      </template>
-      <template v-if="$slots.prefix" #prefix>
-        <slot name="prefix"></slot>
-      </template>
-      <template v-if="$slots.suffix" #suffix>
-        <slot name="suffix"></slot>
-      </template>
-    </el-input>
-    <el-popper
-      class="el-autocomplete-suggestion"
-      :placement="placement"
-      :popper-class="popperClass"
-      :append-to-body="popperAppendToBody"
-      :visible="suggestionVisible"
-      :show-arrow="false"
-      pure
-      effect="light"
-      trigger="click"
-    >
-      <template #trigger>
-        <transition name="el-zoom-in-top">
-          <div
-            v-show="suggestionVisible"
-            ref="regionRef"
-            :class="{ 'is-loading': suggestionLoading }"
-            style="outline: none"
-            role="region"
+    <template #trigger>
+      <div
+        v-clickoutside="close"
+        class="el-autocomplete"
+        role="combobox"
+        aria-haspopup="listbox"
+        :aria-expanded="suggestionVisible"
+        :aria-owns="id"
+      >
+        <el-input
+          ref="inputRef"
+          v-bind="$attrs"
+          :model-value="modelValue"
+          @input="handleInput"
+          @change="handleChange"
+          @focus="handleFocus"
+          @blur="handleBlur"
+          @clear="handleClear"
+          @keydown.up.prevent="highlight(highlightedIndex - 1)"
+          @keydown.down.prevent="highlight(highlightedIndex + 1)"
+          @keydown.enter.prevent="handleKeyEnter"
+          @keydown.tab.prevent="close"
+        >
+          <template v-if="$slots.prepend" #prepend>
+            <slot name="prepend"></slot>
+          </template>
+          <template v-if="$slots.append" #append>
+            <slot name="append"></slot>
+          </template>
+          <template v-if="$slots.prefix" #prefix>
+            <slot name="prefix"></slot>
+          </template>
+          <template v-if="$slots.suffix" #suffix>
+            <slot name="suffix"></slot>
+          </template>
+        </el-input>
+      </div>
+    </template>
+    <template #default>
+      <transition name="el-zoom-in-top" @after-leave="doDestroy">
+        <div
+          v-show="suggestionVisible"
+          ref="regionRef"
+          :class="['el-autocomplete-suggestion', suggestionLoading && 'is-loading']"
+          :style="{ width: dropdownWidth, outline: 'none' }"
+          role="region"
+        >
+          <el-scrollbar
+            tag="ul"
+            wrap-class="el-autocomplete-suggestion__wrap"
+            view-class="el-autocomplete-suggestion__list"
           >
-            <el-scrollbar
-              tag="ul"
-              wrap-class="el-autocomplete-suggestion__wrap"
-              view-class="el-autocomplete-suggestion__list"
-            >
-              <li v-if="suggestionLoading">
-                <i class="el-icon-loading"></i>
+            <li v-if="suggestionLoading">
+              <i class="el-icon-loading"></i>
+            </li>
+            <template v-else>
+              <li
+                v-for="(item, index) in suggestions"
+                :id="`${id}-item-${index}`"
+                :key="index"
+                :class="{'highlighted': highlightedIndex === index}"
+                role="option"
+                :aria-selected="highlightedIndex === index"
+                @click="select(item)"
+              >
+                <slot :item="item">{{ item[valueKey] }}</slot>
               </li>
-              <template v-else>
-                <li
-                  v-for="(item, index) in suggestions"
-                  :id="`${id}-item-${index}`"
-                  :key="index"
-                  :class="{'highlighted': highlightedIndex === index}"
-                  role="option"
-                  :aria-selected="highlightedIndex === index"
-                  @click="select(item)"
-                >
-                  <slot :item="item">{{ item[valueKey] }}</slot>
-                </li>
-              </template>
-            </el-scrollbar>
-          </div>
-        </transition>
-      </template>
-    </el-popper>
-  </div>
+            </template>
+          </el-scrollbar>
+        </div>
+      </transition>
+    </template>
+  </el-popper>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, onMounted, nextTick, PropType } from 'vue'
+import { defineComponent, ref, computed, onMounted, nextTick, PropType, watch } from 'vue'
 import { NOOP } from '@vue/shared'
 import debounce from 'lodash/debounce'
 import { ClickOutside } from '@element-plus/directives'
 import { generateId, isArray } from '@element-plus/utils/util'
 import { UPDATE_MODEL_EVENT } from '@element-plus/utils/constants'
 import throwError from '@element-plus/utils/error'
-import ElInput from '@element-plus/input/src/index.vue'
-import { ElScrollbar } from '@element-plus/scrollbar'
+import { Input as ElInput } from '@element-plus/input'
+import { Scrollbar as ElScrollbar } from '@element-plus/scrollbar'
 import { Popper as ElPopper } from '@element-plus/popper'
 
 export default defineComponent({
@@ -159,11 +162,13 @@ export default defineComponent({
   setup(props, ctx) {
     const suggestions = ref([])
     const highlightedIndex = ref(-1)
+    const dropdownWidth = ref('')
     const activated = ref(false)
     const suggestionDisabled = ref(false)
     const loading = ref(false)
     const inputRef = ref(null)
     const regionRef = ref(null)
+    const popper = ref(null)
 
     const id = computed(() => {
       return `el-autocomplete-${generateId()}`
@@ -174,6 +179,10 @@ export default defineComponent({
     })
     const suggestionLoading = computed(() => {
       return !props.hideLoading && loading.value
+    })
+
+    watch(suggestionVisible, () => {
+      dropdownWidth.value = `${inputRef.value.$el.offsetWidth}px`
     })
 
     onMounted(() => {
@@ -288,15 +297,20 @@ export default defineComponent({
       highlightedIndex.value = index
       inputRef.value.inputOrTextarea.setAttribute('aria-activedescendant', `${id.value}-item-${highlightedIndex.value}`)
     }
+    const doDestroy = () => {
+      popper.value.doDestroy()
+    }
 
     return {
       suggestions,
       highlightedIndex,
+      dropdownWidth,
       activated,
       suggestionDisabled,
       loading,
       inputRef,
       regionRef,
+      popper,
 
       id,
       suggestionVisible,
@@ -313,6 +327,7 @@ export default defineComponent({
       focus,
       select,
       highlight,
+      doDestroy,
     }
   },
 })

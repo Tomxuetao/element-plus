@@ -76,8 +76,8 @@ describe('Popper.vue', () => {
     expect(wrapper.text()).toEqual(AXIOM)
 
     wrapper = _mount({
-      appendToBody: false,
       content: AXIOM,
+      appendToBody: false,
     })
 
     expect(wrapper.text()).toEqual(AXIOM)
@@ -158,13 +158,6 @@ describe('Popper.vue', () => {
     expect(wrapper.find(selector).attributes('style')).not.toContain(
       DISPLAY_NONE,
     )
-  })
-
-  test('should add tab index to referrer', async () => {
-    const wrapper = _mount({
-      appendToBody: false,
-    })
-    expect(wrapper.find(`.${TEST_TRIGGER}`).attributes('tabindex')).toBe('0')
   })
 
   test('should initialize a new popper when component mounted', async () => {
