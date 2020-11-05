@@ -1,12 +1,12 @@
 // import vue from 'rollup-plugin-vue'
-import typescript from 'rollup-plugin-typescript2'
-import css from 'rollup-plugin-css-only'
 import { nodeResolve } from '@rollup/plugin-node-resolve'
+import path from 'path'
+import css from 'rollup-plugin-css-only'
 // import commonjs from '@rollup/plugin-commonjs'
 import { terser } from 'rollup-plugin-terser'
-import path from 'path'
+import typescript from 'rollup-plugin-typescript2'
 import pkg from '../package.json'
-
+const deps = Object.keys(pkg.dependencies)
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const vue = require('./plugin.js')
 
@@ -31,6 +31,7 @@ export default [
         tsconfigOverride: {
           'include': [
             'packages/**/*',
+            'typings/vue-shim.d.ts',
           ],
           'exclude': [
             'node_modules',
@@ -42,7 +43,7 @@ export default [
     ],
     external(id) {
       return /^vue/.test(id)
-        || Object.keys(pkg.dependencies).some(k => new RegExp('^' + k).test(id))
+        || deps.some(k => new RegExp('^' + k).test(id))
     },
   },
 ]
