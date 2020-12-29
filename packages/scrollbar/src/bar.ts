@@ -1,8 +1,8 @@
+import { defineComponent, h, computed, ref, getCurrentInstance, onUnmounted, inject, Ref } from 'vue'
 import { on, off } from '@element-plus/utils/dom'
 import { renderThumbStyle, BAR_MAP } from './util'
-import { h, computed, ref, getCurrentInstance, onUnmounted, inject, Ref } from 'vue'
 
-export default {
+export default defineComponent({
   name: 'Bar',
 
   props: {
@@ -36,7 +36,7 @@ export default {
 
       wrap.value[bar.value.scroll] = (thumbPositionPercentage * wrap.value[bar.value.scrollSize] / 100)
     }
-    const startDrag = e =>{
+    const startDrag = e => {
       e.stopImmediatePropagation()
       cursorDown.value = true
       on(document, 'mousemove', mouseMoveDocumentHandler)
@@ -83,4 +83,4 @@ export default {
     }),
     )
   },
-}
+})

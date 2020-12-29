@@ -1,9 +1,4 @@
-import {
-  computed,
-  ref,
-  reactive,
-  watch,
-} from 'vue'
+import { computed, ref, reactive, watch, CSSProperties } from 'vue'
 import { createPopper } from '@popperjs/core'
 
 import {
@@ -14,17 +9,27 @@ import {
   isString,
   $,
 } from '@element-plus/utils/util'
+import PopupManager from '@element-plus/utils/popup-manager'
 
 import usePopperOptions from './popper-options'
 
 import type { ComponentPublicInstance, SetupContext, Ref } from 'vue'
-import type { IPopperOptions, TriggerType, PopperInstance, RefElement } from './defaults'
+import type {
+  IPopperOptions,
+  TriggerType,
+  PopperInstance,
+  RefElement,
+} from './defaults'
 
 type ElementType = ComponentPublicInstance | HTMLElement
+type EmitType = 'update:visible' | 'after-enter' | 'after-leave' | 'before-enter' | 'before-leave'
 
 export const DEFAULT_TRIGGER = ['hover']
 export const UPDATE_VISIBLE_EVENT = 'update:visible'
-export default function (props: IPopperOptions, { emit }: SetupContext<string[]>) {
+export default function(
+  props: IPopperOptions,
+  { emit }: SetupContext<EmitType[]>,
+) {
   const arrowRef = ref<RefElement>(null)
   const triggerRef = ref(null) as Ref<ElementType>
   const popperRef = ref<RefElement>(null)
@@ -36,6 +41,8 @@ export default function (props: IPopperOptions, { emit }: SetupContext<string[]>
   let triggerFocused = false
 
   const isManualMode = () => props.manualMode || props.trigger === 'manual'
+
+  const popperStyle = ref<CSSProperties>({ zIndex: PopupManager.nextZIndex() })
 
   const popperOptions = usePopperOptions(props, {
     arrow: arrowRef,
@@ -56,7 +63,9 @@ export default function (props: IPopperOptions, { emit }: SetupContext<string[]>
     },
     set(val) {
       if (isManualMode()) return
-      isBool(props.visible) ? emit(UPDATE_VISIBLE_EVENT, val) : state.visible = val
+      isBool(props.visible)
+        ? emit(UPDATE_VISIBLE_EVENT, val)
+        : (state.visible = val)
     },
   })
 
@@ -140,11 +149,7 @@ export default function (props: IPopperOptions, { emit }: SetupContext<string[]>
     const _trigger = isHTMLElement(unwrappedTrigger)
       ? unwrappedTrigger
       : (unwrappedTrigger as ComponentPublicInstance).$el
-    popperInstance = createPopper(
-      _trigger,
-      $(popperRef),
-      $(popperOptions),
-    )
+    popperInstance = createPopper(_trigger, $(popperRef), $(popperOptions))
 
     popperInstance.update()
   }
@@ -181,6 +186,7 @@ export default function (props: IPopperOptions, { emit }: SetupContext<string[]>
 
   function onVisibilityChange(toState: boolean) {
     if (toState) {
+      popperStyle.value.zIndex = PopupManager.nextZIndex()
       initializePopper()
     }
   }
@@ -251,7 +257,7 @@ export default function (props: IPopperOptions, { emit }: SetupContext<string[]>
     if (isArray(props.trigger)) {
       Object.values(props.trigger).map(mapEvents)
     } else {
-      mapEvents(props.trigger)
+      mapEvents(props.trigger as TriggerType)
     }
   }
 
@@ -277,6 +283,12 @@ export default function (props: IPopperOptions, { emit }: SetupContext<string[]>
       detachPopper()
       emit('after-leave')
     },
+    onBeforeEnter: () => {
+      emit('before-enter')
+    },
+    onBeforeLeave: () => {
+      emit('before-leave')
+    },
     initializePopper,
     isManualMode,
     arrowRef,
@@ -284,6 +296,7 @@ export default function (props: IPopperOptions, { emit }: SetupContext<string[]>
     popperId,
     popperInstance,
     popperRef,
+    popperStyle,
     triggerRef,
     visibility,
   }

@@ -1,14 +1,19 @@
 <template>
-  <!-- todo popper props align left  -->
-  <!-- todo popper custom popper-class  -->
-  <!-- todo bug handleKeydown event twice  -->
   <el-popper
     ref="popper"
     v-model:visible="pickerVisible"
     manual-mode
     effect="light"
+    pure
     trigger="click"
-    popper-class="el-picker__popper"
+    v-bind="$attrs"
+    :popper-class="`el-picker__popper ${popperClass}`"
+    transition="el-zoom-in-top"
+    :gpu-acceleration="false"
+    :stop-popper-mouse-event="false"
+    append-to-body
+    @before-enter="pickerActualVisible = true"
+    @after-leave="pickerActualVisible = false"
   >
     <template #trigger>
       <el-input
@@ -102,6 +107,7 @@
     <template #default>
       <slot
         :visible="pickerVisible"
+        :actual-visible="pickerActualVisible"
         :parsed-value="parsedValue"
         :format="format"
         :type="type"
@@ -110,6 +116,7 @@
         @pick="onPick"
         @select-range="setSelectionRange"
         @set-picker-option="onSetPickerOption"
+        @mousedown.stop
       ></slot>
     </template>
   </el-popper>
@@ -125,15 +132,13 @@ import {
 } from 'vue'
 import dayjs from 'dayjs'
 import { ClickOutside } from '@element-plus/directives'
-import { Input as ElInput } from '@element-plus/input'
-import { Popper as ElPopper } from '@element-plus/popper'
+import ElInput from '@element-plus/input'
+import ElPopper from '@element-plus/popper'
 import { EVENT_CODE } from '@element-plus/utils/aria'
 import { useGlobalConfig } from '@element-plus/utils/util'
-import { isValidComponentSize } from '@element-plus/utils/validators'
 import { elFormKey, elFormItemKey } from '@element-plus/form'
-
-import type { PropType } from 'vue'
 import type { ElFormContext, ElFormItemContext } from '@element-plus/form'
+import { defaultProps } from './props'
 
 interface PickerOptions {
   isValidValue: any
@@ -143,6 +148,7 @@ interface PickerOptions {
   getRangeAvaliableTime: any
   getDefaultValue: any
   panelReady: boolean
+  handleClear: any
 }
 
 // Date object and string
@@ -180,99 +186,7 @@ export default defineComponent({
     ElPopper,
   },
   directives: { clickoutside: ClickOutside },
-  props: {
-    name: {
-      type: [Array, String],
-      default: '',
-    },
-    format: {
-      type: String,
-      required: true,
-    },
-    type: {
-      type: String,
-      default: '',
-    },
-    clearable: {
-      type: Boolean,
-      default: true,
-    },
-    clearIcon: {
-      type: String,
-      default: 'el-icon-circle-close',
-    },
-    editable: {
-      type: Boolean,
-      default: true,
-    },
-    prefixIcon:{
-      type: String,
-      default: '',
-    },
-    size: {
-      type: String as PropType<ComponentSize>,
-      validator: isValidComponentSize,
-    },
-    readonly: {
-      type: Boolean,
-      default: false,
-    },
-    disabled: {
-      type: Boolean,
-      default: false,
-    },
-    placeholder: {
-      type: String,
-      default: '',
-    },
-    modelValue: {
-      type: [Date, Array, String] as PropType<string | Date | Date[]>,
-      default: '',
-    },
-    rangeSeparator: {
-      type: String,
-      default: '-',
-    },
-    startPlaceholder: String,
-    endPlaceholder: String,
-    defaultValue: {
-      type: [Date, Array] as PropType<Date | Date[]>,
-    },
-    defaultTime: {
-      type: [Date, Array] as PropType<Date | Date[]>,
-    },
-    isRange: {
-      type: Boolean,
-      default: false,
-    },
-    disabledHours: {
-      type: Function,
-    },
-    disabledMinutes: {
-      type: Function,
-    },
-    disabledSeconds: {
-      type: Function,
-    },
-    disabledDate: {
-      type: Function,
-    },
-    cellClassName: {
-      type: Function,
-    },
-    shortcuts: {
-      type: Array,
-      default: () => ([]),
-    },
-    arrowControl: {
-      type: Boolean,
-      default: false,
-    },
-    validateEvent: {
-      type: Boolean,
-      default: true,
-    },
-  },
+  props: defaultProps,
   emits: ['update:modelValue', 'change', 'focus', 'blur'],
   setup(props, ctx) {
     const ELEMENT = useGlobalConfig()
@@ -282,6 +196,7 @@ export default defineComponent({
 
     const refContainer = ref(null)
     const pickerVisible = ref(false)
+    const pickerActualVisible = ref(false)
     const valueOnOpen = ref(null)
 
     watch(pickerVisible, val => {
@@ -343,7 +258,7 @@ export default defineComponent({
       ctx.emit('focus', e)
     }
 
-    const pickerDisabled = computed(() =>{
+    const pickerDisabled = computed(() => {
       return props.disabled || elForm.disabled
     })
 
@@ -404,7 +319,7 @@ export default defineComponent({
       return props.prefixIcon || (isTimeLikePicker.value ? 'el-icon-time' : 'el-icon-date')
     })
     const showClose = ref(false)
-    const onClearIconClick = event =>{
+    const onClearIconClick = event => {
       if (props.readonly || pickerDisabled.value) return
       if (showClose.value) {
         event.stopPropagation()
@@ -412,6 +327,7 @@ export default defineComponent({
         emitChange(null)
         showClose.value = false
         pickerVisible.value = false
+        pickerOptions.value.handleClear && pickerOptions.value.handleClear()
       }
     }
     const valueIsEmpty = computed(() => {
@@ -593,6 +509,7 @@ export default defineComponent({
       onPick,
       handleFocus,
       pickerVisible,
+      pickerActualVisible,
       displayValue,
       parsedValue,
       setSelectionRange,

@@ -8,10 +8,11 @@ import {
 } from 'vue'
 import mitt from 'mitt'
 import { UPDATE_MODEL_EVENT, CHANGE_EVENT } from '@element-plus/utils/constants'
+import { EVENT_CODE } from '@element-plus/utils/aria'
 import { t } from '@element-plus/locale'
 import isServer from '@element-plus/utils/isServer'
 import scrollIntoView from '@element-plus/utils/scroll-into-view'
-import { debounce as lodashDebounce } from 'lodash'
+import lodashDebounce from 'lodash/debounce'
 import { isKorean } from '@element-plus/utils/isDef'
 import {
   getValueByPath,
@@ -21,7 +22,9 @@ import {
 } from '@element-plus/utils/util'
 import { elFormKey, elFormItemKey } from '@element-plus/form'
 import isEqual from 'lodash/isEqual'
+import { isObject, toRawType } from '@vue/shared'
 
+import type { ComponentPublicInstance } from 'vue'
 import type { ElFormContext, ElFormItemContext } from '@element-plus/form'
 
 export function useSelectStates(props) {
@@ -151,11 +154,12 @@ export const useSelect = (props, states: States, ctx) => {
     if (!isEqual(val, oldVal)) {
       elFormItem.formItemMitt?.emit('el.form.change', val)
     }
+  }, {
+    flush: 'post',
   })
 
   watch(() => states.visible, val => {
     if (!val) {
-      doDestroy()
       input.value && input.value.blur()
       states.query = ''
       states.previousQuery = null
@@ -207,20 +211,25 @@ export const useSelect = (props, states: States, ctx) => {
     ctx.emit('visible-change', val)
   })
 
-  watch(() => states.options, () => {
-    if (isServer) return
-    popper.value?.update()
-    if (props.multiple) {
-      resetInputHeight()
-    }
-    const inputs = selectWrapper.value.querySelectorAll('input')
-    if ([].indexOf.call(inputs, document.activeElement) === -1) {
-      setSelected()
-    }
-    if (props.defaultFirstOption && (props.filterable || props.remote) && states.filteredOptionsCount) {
-      checkDefaultFirstOption()
-    }
-  })
+  watch(
+    // fix `Array.prototype.push/splice/..` cannot trigger non-deep watcher
+    // https://github.com/vuejs/vue-next/issues/2116
+    () => ([...states.options]),
+    () => {
+      if (isServer) return
+      popper.value?.update?.()
+      if (props.multiple) {
+        resetInputHeight()
+      }
+      const inputs = selectWrapper.value?.querySelectorAll('input') || []
+      if ([].indexOf.call(inputs, document.activeElement) === -1) {
+        setSelected()
+      }
+      if (props.defaultFirstOption && (props.filterable || props.remote) && states.filteredOptionsCount) {
+        checkDefaultFirstOption()
+      }
+    },
+  )
 
   watch(() => states.hoverIndex, val => {
     if (typeof val === 'number' && val > -1) {
@@ -263,7 +272,7 @@ export const useSelect = (props, states: States, ctx) => {
     }
     states.previousQuery = val
     nextTick(() => {
-      if (states.visible) popper.value?.update()
+      if (states.visible) popper.value?.update?.()
     })
     states.hoverIndex = -1
     if (props.multiple && props.filterable) {
@@ -354,16 +363,16 @@ export const useSelect = (props, states: States, ctx) => {
 
   const getOption = value => {
     let option
-    const isObject = Object.prototype.toString.call(props.modelValue).toLowerCase() === '[object object]'
-    const isNull = Object.prototype.toString.call(props.modelValue).toLowerCase() === '[object null]'
-    const isUndefined = Object.prototype.toString.call(props.modelValue).toLowerCase() === '[object undefined]'
+    const isObjectValue = toRawType(value).toLowerCase() === 'object'
+    const isNull = toRawType(value).toLowerCase() === 'null'
+    const isUndefined = toRawType(value).toLowerCase() === 'undefined'
 
     for (let i = states.cachedOptions.length - 1; i >= 0; i--) {
       const cachedOption = states.cachedOptions[i]
-      const isEqual = isObject
-        ? getValueByPath(cachedOption.value, props.valueKey) === getValueByPath(props.modelValue, props.valueKey)
+      const isEqualValue = isObjectValue
+        ? getValueByPath(cachedOption.value, props.valueKey) === getValueByPath(value, props.valueKey)
         : cachedOption.value === value
-      if (isEqual) {
+      if (isEqualValue) {
         option = {
           value,
           currentLabel: cachedOption.currentLabel,
@@ -372,9 +381,9 @@ export const useSelect = (props, states: States, ctx) => {
       }
     }
     if (option) return option
-    const label = (!isObject && !isNull && !isUndefined) ? value : ''
+    const label = (!isObjectValue && !isNull && !isUndefined) ? value : ''
     const newOption = {
-      value: value,
+      value,
       currentLabel: label,
     }
     if (props.multiple) {
@@ -399,7 +408,7 @@ export const useSelect = (props, states: States, ctx) => {
 
   const handleResize = () => {
     resetInputWidth()
-    popper.value?.update()
+    popper.value?.update?.()
     if (props.multiple) resetInputHeight()
   }
 
@@ -489,21 +498,18 @@ export const useSelect = (props, states: States, ctx) => {
   }
 
   const getValueIndex = (arr = [], value) => {
-    const isObject = Object.prototype.toString.call(value).toLowerCase() === '[object object]'
-    if (!isObject) {
-      return arr.indexOf(value)
-    } else {
-      const valueKey = props.valueKey
-      let index = -1
-      arr.some((item, i) => {
-        if (getValueByPath(item, valueKey) === getValueByPath(value, valueKey)) {
-          index = i
-          return true
-        }
-        return false
-      })
-      return index
-    }
+    if (!isObject(value)) return arr.indexOf(value)
+
+    const valueKey = props.valueKey
+    let index = -1
+    arr.some((item, i) => {
+      if (getValueByPath(item, valueKey) === getValueByPath(value, valueKey)) {
+        index = i
+        return true
+      }
+      return false
+    })
+    return index
   }
 
   const setSoftFocus = () => {
@@ -526,7 +532,14 @@ export const useSelect = (props, states: States, ctx) => {
     // scrollbar.value?.handleScroll()
   }
 
-  const onOptionDestroy = index => {
+  const onOptionCreate = (vm: ComponentPublicInstance) => {
+    states.optionsCount++
+    states.filteredOptionsCount++
+    states.options.push(vm)
+    states.cachedOptions.push(vm)
+  }
+
+  const onOptionDestroy = (index: number) => {
     if (index > -1) {
       states.optionsCount--
       states.filteredOptionsCount--
@@ -534,8 +547,8 @@ export const useSelect = (props, states: States, ctx) => {
     }
   }
 
-  const resetInputState = e => {
-    if (e.keyCode !== 8) toggleLastOptionHitState(false)
+  const resetInputState = (e: KeyboardEvent) => {
+    if (e.code !== EVENT_CODE.backspace) toggleLastOptionHitState(false)
     states.inputLength = input.value.length * 15 + 20
     resetInputHeight()
   }
@@ -588,7 +601,7 @@ export const useSelect = (props, states: States, ctx) => {
     reference.value.blur()
   }
 
-  const handleBlur = event => {
+  const handleBlur = (event: Event) => {
     // https://github.com/ElemeFE/element/pull/10822
     nextTick(() => {
       if (states.isSilentBlur) {
@@ -600,12 +613,8 @@ export const useSelect = (props, states: States, ctx) => {
     states.softFocus = false
   }
 
-  const handleClearClick = event => {
+  const handleClearClick = (event: Event) => {
     deleteSelected(event)
-  }
-
-  const doDestroy = () => {
-    popper.value?.doDestroy?.()
   }
 
   const handleClose = () => {
@@ -637,11 +646,9 @@ export const useSelect = (props, states: States, ctx) => {
   }
 
   const getValueKey = item => {
-    if (Object.prototype.toString.call(item.value).toLowerCase() !== '[object object]') {
-      return item.value
-    } else {
-      return getValueByPath(item.value, props.valueKey)
-    }
+    return isObject(item.value)
+      ? getValueByPath(item.value, props.valueKey)
+      : item.value
   }
 
   const optionsAllDisabled = computed(() => states.options.filter(option => option.visible).every(option => option.disabled))
@@ -698,13 +705,13 @@ export const useSelect = (props, states: States, ctx) => {
     toggleLastOptionHitState,
     resetInputState,
     handleComposition,
+    onOptionCreate,
     onOptionDestroy,
     handleMenuEnter,
     handleFocus,
     blur,
     handleBlur,
     handleClearClick,
-    doDestroy,
     handleClose,
     toggleMenu,
     selectOption,

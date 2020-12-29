@@ -50,7 +50,13 @@ import hljs from 'highlight.js'
 import compoLang from '../i18n/component.json'
 import { stripScript, stripStyle, stripTemplate } from '../util'
 const version = '1.0.0' // element version
-
+const stripTemplateAndRemoveTemplate = code => {
+  const result = stripTemplate(code)
+  if (result.indexOf('<template>') === 0) {
+    return result.replace(/^<template>/, '').replace(/<\/template>$/,'')
+  }
+  return result
+}
 export default {
   data() {
     return {
@@ -122,14 +128,14 @@ export default {
     if (highlight && highlight[0]) {
       let code = ''
       let cur = highlight[0]
-      if (cur.tag === 'pre' && (cur.children && cur.children[0])) {
+      if (cur.type === 'pre' && (cur.children && cur.children[0])) {
         cur = cur.children[0]
-        if (cur.tag === 'code') {
-          code = cur.children[0].text
+        if (cur.type === 'code') {
+          code = cur.children
         }
       }
       if (code) {
-        this.codepen.html = stripTemplate(code)
+        this.codepen.html = stripTemplateAndRemoveTemplate(code)
         this.codepen.script = stripScript(code)
         this.codepen.style = stripStyle(code)
       }
@@ -160,14 +166,12 @@ export default {
     goCodepen() {
       // since 2.6.2 use code rather than jsfiddle https://blog.codepen.io/documentation/api/prefill/
       const { script, html, style } = this.codepen
-      const resourcesTpl = '<scr' + 'ipt src="//unpkg.com/vue/dist/vue.js"></scr' + 'ipt>' +
-        '\n<scr' + `ipt src="//unpkg.com/element-ui@${ version }/lib/index.js"></scr` + 'ipt>'
-      let jsTpl = (script || '').replace(/export default/, 'var Main =').trim()
+      const resourcesTpl = '<scr' + 'ipt src="//unpkg.com/vue@next"></scr' + 'ipt>' +
+        '\n<scr' + `ipt src="//unpkg.com/element-plus/lib/index.full.js"></scr` + 'ipt>'
       let htmlTpl = `${resourcesTpl}\n<div id="app">\n${html.trim()}\n</div>`
-      let cssTpl = `@import url("//unpkg.com/element-ui@${ version }/lib/theme-chalk/index.css");\n${(style || '').trim()}\n`
-      jsTpl = jsTpl
-        ? jsTpl + '\nvar Ctor = Vue.extend(Main)\nnew Ctor().$mount(\'#app\')'
-        : 'new Vue().$mount(\'#app\')'
+      let cssTpl = `@import url("//unpkg.com/element-plus/lib/theme-chalk/index.css");\n${(style || '').trim()}\n`
+      let jsTpl = script ? script.replace(/export default/, 'var Main =').trim().replace(/import ({.*}) from 'vue'/g, (s, s1) => `const ${s1} = Vue`).replace(/import ({.*}) from 'element-plus'/g, (s, s1) => `const ${s1} = ElementPlus`) : 'var Main = {}'
+      jsTpl += '\n;const app = Vue.createApp(Main);\napp.use(ElementPlus);\napp.mount("#app")'
       const data = {
         js: jsTpl,
         css: cssTpl,

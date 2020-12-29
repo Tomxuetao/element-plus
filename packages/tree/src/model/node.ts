@@ -1,6 +1,5 @@
 import { markNodeData, NODE_KEY } from './util'
 import TreeStore from './tree-store'
-import objectAssign from '@element-plus/utils/merge'
 
 import {
   TreeNodeOptions,
@@ -9,7 +8,7 @@ import {
   FakeNode,
   TreeNodeLoadedDefaultProps,
   TreeNodeChildState,
-} from '../tree.d'
+} from '../tree.type'
 
 export const getChildState = (node: Node[]): TreeNodeChildState => {
   let all = true
@@ -84,6 +83,7 @@ export default class Node {
   store: TreeStore;
   isLeafByUser: boolean;
   isLeaf: boolean;
+  canFocus: boolean;
 
   level: number;
   loaded: boolean;
@@ -100,6 +100,7 @@ export default class Node {
     this.parent = null
     this.visible = true
     this.isCurrent = false
+    this.canFocus = false
 
     for (const name in options) {
       if (options.hasOwnProperty(name)) {
@@ -136,6 +137,7 @@ export default class Node {
 
       if (store.defaultExpandAll) {
         this.expanded = true
+        this.canFocus = true
       }
     } else if (this.level > 0 && store.lazy && store.defaultExpandAll) {
       this.expand()
@@ -162,6 +164,7 @@ export default class Node {
     }
 
     this.updateLeafState()
+    if(this.parent && (this.level === 1 || this.parent.expanded === true)) this.canFocus = true
   }
 
   setData(data: TreeNodeData): void {
@@ -245,7 +248,7 @@ export default class Node {
           }
         }
       }
-      objectAssign(child, {
+      Object.assign(child, {
         parent: this,
         store: this.store,
       })
@@ -324,6 +327,9 @@ export default class Node {
       }
       this.expanded = true
       if (callback) callback()
+      this.childNodes.forEach(item => {
+        item.canFocus = true
+      })
     }
 
     if (this.shouldLoadData()) {
@@ -344,12 +350,15 @@ export default class Node {
 
   doCreateChildren(array: TreeNodeData[], defaultProps: TreeNodeLoadedDefaultProps = {}): void {
     array.forEach(item => {
-      this.insertChild(objectAssign({ data: item }, defaultProps), undefined, true)
+      this.insertChild(Object.assign({ data: item }, defaultProps), undefined, true)
     })
   }
 
   collapse(): void {
     this.expanded = false
+    this.childNodes.forEach(item => {
+      item.canFocus = false
+    })
   }
 
   shouldLoadData(): boolean {

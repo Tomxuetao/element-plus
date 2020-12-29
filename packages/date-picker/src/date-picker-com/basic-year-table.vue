@@ -66,17 +66,17 @@ export default defineComponent({
       type: Function as PropType<(_: Date) => void>,
     },
     parsedValue: {
-      type: Dayjs,
+      type: Object as PropType<Dayjs>,
     },
     date: {
-      type: Dayjs,
+      type: Object as PropType<Dayjs>,
     },
   },
 
   emits: ['pick'],
 
   setup(props, ctx) {
-    const startYear = computed(() =>{
+    const startYear = computed(() => {
       return Math.floor(props.date.year() / 10) * 10
     })
     const getCellStyle = year => {
