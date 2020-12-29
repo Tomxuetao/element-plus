@@ -28,6 +28,10 @@
           "name": "国际化"
         },
         {
+          "path": "/migration-from-2.x",
+          "name": "从 Element 2.x 升级"
+        },
+        {
           "path": "/custom-theme",
           "name": "自定义主题"
         },
@@ -74,6 +78,10 @@
             {
               "path": "/link",
               "title": "Link 文字链接"
+            },
+            {
+              "path": "/space",
+              "title": "Space 间距"
             }
           ]
         },
@@ -180,6 +188,10 @@
             {
               "path": "/avatar",
               "title": "Avatar 头像"
+            },
+            {
+              "path": "/skeleton",
+              "title": "Skeleton 骨架屏"
             }
           ]
         },
@@ -330,6 +342,10 @@
           "name": "Internationalization"
         },
         {
+          "path": "/migration-from-2.x",
+          "name": "Migration from Element 2.x"
+        },
+        {
           "path": "/custom-theme",
           "name": "Custom Theme"
         },
@@ -376,6 +392,10 @@
             {
               "path": "/link",
               "title": "Link"
+            },
+            {
+              "path": "/space",
+              "title": "Space"
             }
           ]
         },
@@ -478,6 +498,10 @@
             {
               "path": "/badge",
               "title": "Badge"
+            },
+            {
+              "path": "/skeleton",
+              "title": "Skeleton"
             }
           ]
         },
@@ -632,6 +656,10 @@
           "name": "Internationalization"
         },
         {
+          "path": "/migration-from-2.x",
+          "name": "Migration from Element 2.x"
+        },
+        {
           "path": "/custom-theme",
           "name": "Custom Theme"
         },
@@ -678,6 +706,10 @@
             {
               "path": "/link",
               "title": "Link"
+            },
+            {
+              "path": "/space",
+              "title": "Space"
             }
           ]
         },
@@ -780,6 +812,10 @@
             {
               "path": "/badge",
               "title": "Badge"
+            },
+            {
+              "path": "/skeleton",
+              "title": "Skeleton"
             }
           ]
         },
@@ -934,6 +970,10 @@
           "name": "Internationalisation"
         },
         {
+          "path": "/migration-from-2.x",
+          "name": "Migration from Element 2.x"
+        },
+        {
           "path": "/custom-theme",
           "name": "Thème"
         },
@@ -980,6 +1020,10 @@
             {
               "path": "/link",
               "title": "Link"
+            },
+            {
+              "path": "/space",
+              "title": "Space"
             }
           ]
         },
@@ -1082,6 +1126,10 @@
             {
               "path": "/badge",
               "title": "Badge"
+            },
+            {
+              "path": "/skeleton",
+              "title": "Skeleton"
             }
           ]
         },
@@ -1236,6 +1284,10 @@
           "name": "Internationalization"
         },
         {
+          "path": "/migration-from-2.x",
+          "name": "Migration from Element 2.x"
+        },
+        {
           "path": "/custom-theme",
           "name": "Custom Theme"
         },
@@ -1282,6 +1334,10 @@
             {
               "path": "/link",
               "title": "Link"
+            },
+            {
+              "path": "/space",
+              "title": "Space"
             }
           ]
         },
@@ -1384,6 +1440,10 @@
             {
               "path": "/badge",
               "title": "Badge"
+            },
+            {
+              "path": "/skeleton",
+              "title": "Skeleton"
             }
           ]
         },

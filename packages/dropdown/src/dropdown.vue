@@ -4,9 +4,13 @@
     v-model:visible="visible"
     :placement="placement"
     :effect="effect"
+    pure
     :manual-mode="true"
     :trigger="[trigger]"
     popper-class="el-dropdown__popper"
+    append-to-body
+    transition="el-zoom-in-top"
+    :gpu-acceleration="false"
   >
     <template #default>
       <slot name="dropdown"></slot>
@@ -48,11 +52,9 @@ import {
   ComponentPublicInstance,
 } from 'vue'
 import { on, addClass, removeClass } from '@element-plus/utils/dom'
-import {
-  Button as ElButton,
-  ButtonGroup as ElButtonGroup,
-} from '@element-plus/button'
-import { Popper as ElPopper } from '@element-plus/popper'
+import ElButton from '@element-plus/button'
+import ElButtonGroup from '@element-plus/button-group'
+import ElPopper from '@element-plus/popper'
 import { useDropdown } from './useDropdown'
 
 export default defineComponent({

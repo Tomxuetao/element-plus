@@ -1,5 +1,6 @@
-import { DEFAULT_FORMATS_DATE, DEFAULT_FORMATS_DATEPICKER } from '@element-plus/time-picker/src/common/constant'
-import Picker from '@element-plus/time-picker/src/common/picker.vue'
+import { defineComponent } from 'vue'
+import { DEFAULT_FORMATS_DATE, DEFAULT_FORMATS_DATEPICKER } from '@element-plus/time-picker'
+import { CommonPicker, defaultProps } from '@element-plus/time-picker'
 import DatePickPanel from './date-picker-com/panel-date-pick.vue'
 import DateRangePickPanel from './date-picker-com/panel-date-range.vue'
 import MonthRangePickPanel from './date-picker-com/panel-month-range.vue'
@@ -31,23 +32,27 @@ const getPanel = function(type) {
   return DatePickPanel
 }
 
-export default {
+export default defineComponent({
   name: 'ElDatePicker',
+  install: null,
   props: {
+    ...defaultProps,
     type: {
       type: String,
       default: 'date',
     },
   },
-  setup(props) {
+  emits: ['update:modelValue'],
+  setup(props, ctx) {
     const format = DEFAULT_FORMATS_DATEPICKER[props.type] || DEFAULT_FORMATS_DATE
-    return () => h(Picker, {
+    return () => h(CommonPicker, {
       format,
+      ...props, // allow format to be overwrite
       type: props.type,
-      ...props,
+      'onUpdate:modelValue': value => ctx.emit('update:modelValue', value),
     },
     {
       default: scopedProps => h(getPanel(props.type), scopedProps),
     })
   },
-}
+})

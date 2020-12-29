@@ -5,7 +5,7 @@
       :class="[
         wrapClass,
         'el-scrollbar__wrap',
-        native ? '' : gutter ? '' : 'el-scrollbar__wrap--hidden-default',
+        native ? '' : 'el-scrollbar__wrap--hidden-default',
       ]"
       :style="style"
       @scroll="handleScroll"
@@ -25,12 +25,11 @@
     </template>
   </div>
 </template>
-<script lang='ts'>
+<script lang="ts">
 import {
   addResizeListener,
   removeResizeListener,
 } from '@element-plus/utils/resize-event'
-import scrollbarWidth from '@element-plus/utils/scrollbar-width'
 import { toObject } from '@element-plus/utils/util'
 import {
   defineComponent,
@@ -45,9 +44,7 @@ import Bar from './bar'
 
 export default defineComponent({
   name: 'ElScrollbar',
-
   components: { Bar },
-
   props: {
     native: {
       type: Boolean,
@@ -75,7 +72,6 @@ export default defineComponent({
       default: 'div',
     },
   },
-
   setup(props) {
     const sizeWidth = ref('0')
     const sizeHeight = ref('0')
@@ -87,7 +83,7 @@ export default defineComponent({
     provide('scroll-bar-wrap', wrap)
 
     const handleScroll = () => {
-      if (!props.native) {
+      if (!props.native && wrap.value) {
         moveY.value = (wrap.value.scrollTop * 100) / wrap.value.clientHeight
         moveX.value = (wrap.value.scrollLeft * 100) / wrap.value.clientWidth
       }
@@ -115,23 +111,10 @@ export default defineComponent({
       if (props.native) return
       !props.noresize && removeResizeListener(resize.value, update)
     })
-    const gutter = computed(() => {
-      return scrollbarWidth()
-    })
     const style = computed(() => {
-      const gutter = scrollbarWidth()
       let style = props.wrapStyle
-      if (gutter) {
-        const gutterWith = `-${gutter}px`
-        const gutterStyle = `margin-bottom: ${gutterWith}; margin-right: ${gutterWith};`
-        if (Array.isArray(props.wrapStyle)) {
-          style = toObject(props.wrapStyle)
-          style.marginRight = style.marginBottom = gutterWith
-        } else if (typeof props.wrapStyle === 'string') {
-          style += gutterStyle
-        } else {
-          style = gutterStyle
-        }
+      if (Array.isArray(props.wrapStyle)) {
+        style = toObject(props.wrapStyle)
       }
       return style
     })
@@ -141,7 +124,6 @@ export default defineComponent({
       sizeWidth,
       sizeHeight,
       style,
-      gutter,
       wrap,
       resize,
       update,

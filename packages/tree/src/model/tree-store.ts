@@ -10,7 +10,7 @@ import {
   TreeStoreOptions,
   FilterValue,
   TreeNodeData,
-} from '../tree.d'
+} from '../tree.type'
 
 export default class TreeStore {
   currentNode: Node
@@ -163,10 +163,14 @@ export default class TreeStore {
 
   registerNode(node: Node): void {
     const key = this.key
-    if (!key || !node || !node.data) return
+    if (!node || !node.data) return
 
-    const nodeKey = node.key
-    if (nodeKey !== undefined) this.nodesMap[node.key] = node
+    if(!key){
+      this.nodesMap[node.id] = node
+    }else {
+      const nodeKey = node.key
+      if (nodeKey !== undefined) this.nodesMap[node.key] = node
+    }
   }
 
   deregisterNode(node: Node): void {

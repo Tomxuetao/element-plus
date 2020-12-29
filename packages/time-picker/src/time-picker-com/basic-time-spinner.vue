@@ -61,10 +61,11 @@ import {
   onMounted,
   Ref,
   watch,
+  PropType,
 } from 'vue'
 import { Dayjs } from 'dayjs'
 import { RepeatClick } from '@element-plus/directives'
-import { Scrollbar as ElScrollbar } from '@element-plus/scrollbar'
+import ElScrollbar from '@element-plus/scrollbar'
 import { getTimeLists } from './useTimePicker'
 
 export default defineComponent({
@@ -83,7 +84,7 @@ export default defineComponent({
       required: true,
     },
     spinnerDate: {
-      type: Dayjs,
+      type: Object as PropType<Dayjs>,
       required: true,
     },
     showSeconds: {
@@ -135,13 +136,13 @@ export default defineComponent({
     const timePartsMap = computed(() => ({
       hours, minutes, seconds,
     }))
-    const hoursList = computed(() =>{
+    const hoursList = computed(() => {
       return getHoursList(props.role)
     })
-    const minutesList = computed(() =>{
+    const minutesList = computed(() => {
       return getMinutesList(hours.value, props.role)
     })
-    const secondsList = computed(() =>{
+    const secondsList = computed(() => {
       return getSecondsList(hours.value, minutes.value, props.role)
     })
     const listMap = computed(() => ({
@@ -157,7 +158,7 @@ export default defineComponent({
         hour < 23 ? hour + 1 : undefined,
       ]
     })
-    const arrowMinuteList = computed(()=> {
+    const arrowMinuteList = computed(() => {
       const minute = minutes.value
       return [
         minute > 0 ? minute - 1 : undefined,
@@ -165,7 +166,7 @@ export default defineComponent({
         minute < 59 ? minute + 1 : undefined,
       ]
     })
-    const arrowSecondList = computed(() =>{
+    const arrowSecondList = computed(() => {
       const second = seconds.value
       return [
         second > 0 ? second - 1 : undefined,
@@ -188,7 +189,7 @@ export default defineComponent({
       return content
     }
 
-    const emitSelectRange = type =>{
+    const emitSelectRange = type => {
       if (type === 'hours') {
         ctx.emit('select-range', 0, 2)
       } else if (type === 'minutes') {
@@ -199,7 +200,7 @@ export default defineComponent({
       currentScrollbar.value = type
     }
 
-    const adjustCurrentSpinner = type =>{
+    const adjustCurrentSpinner = type => {
       adjustSpinner(type, timePartsMap.value[type].value)
     }
 
@@ -220,7 +221,7 @@ export default defineComponent({
       }
     }
 
-    const typeItemHeight  = type =>{
+    const typeItemHeight  = type => {
       const el = listRefsMap[type]
       return el.value.$el.querySelector('li').offsetHeight
     }
@@ -332,9 +333,7 @@ export default defineComponent({
       props.disabledSeconds,
     )
 
-    watch(() => props.spinnerDate, () => {
-      adjustSpinners()
-    })
+    watch(() => props.spinnerDate, adjustSpinners)
 
     return {
       getRefId,

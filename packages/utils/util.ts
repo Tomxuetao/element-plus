@@ -53,9 +53,14 @@ export function getPropByPath(obj: any, path: string, strict: boolean): {
   for (i; i < keyArr.length - 1; i++) {
     if (!tempObj && !strict) break
     const key = keyArr[i]
-    tempObj = tempObj?.[key]
-    if (!tempObj && strict) {
-      throw new Error('please transfer a valid prop path to form item!')
+
+    if (key in tempObj) {
+      tempObj = tempObj[key]
+    } else {
+      if (strict) {
+        throw new Error('please transfer a valid prop path to form item!')
+      }
+      break
     }
   }
   return {
@@ -209,7 +214,7 @@ export function arrayFlat(arr: unknown[]) {
 }
 
 export function deduplicate<T>(arr: T[]) {
-  return [...new Set(arr)]
+  return Array.from(new Set(arr))
 }
 
 /**
