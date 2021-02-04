@@ -24,8 +24,9 @@
         v-if="showViewer"
         :z-index="zIndex"
         :initial-index="imageIndex"
-        :on-close="closeViewer"
         :url-list="previewSrcList"
+        :hide-on-click-modal="hideOnClickModal"
+        @close="closeViewer"
       />
     </template>
   </div>
@@ -40,7 +41,8 @@ import { useAttrs } from '@element-plus/hooks'
 import isServer from '@element-plus/utils/isServer'
 import { on, off, getScrollContainer, isInContainer } from '@element-plus/utils/dom'
 import { t } from '@element-plus/locale'
-import ImageViewer from './image-viewer.vue'
+import ImageViewer from '@element-plus/image-viewer'
+import type { PropType } from 'vue'
 
 const isSupportObjectFit = () => document.documentElement.style.objectFit !== undefined
 const isHtmlEle = e => e && e.nodeType === 1
@@ -62,6 +64,10 @@ export default defineComponent({
   },
   inheritAttrs: false,
   props: {
+    hideOnClickModal: {
+      type: Boolean,
+      default: false,
+    },
     src: {
       type: String,
       default: '',
@@ -79,8 +85,8 @@ export default defineComponent({
       default: null,
     },
     previewSrcList: {
-      type: Array,
-      default: () => [],
+      type: Array as PropType<string[]>,
+      default: () => [] as string[],
     },
     zIndex: {
       type: Number,
@@ -142,7 +148,8 @@ export default defineComponent({
       } = container.value
       if (!imageWidth || !imageHeight || !containerWidth || !containerHeight) return {}
 
-      const vertical = imageWidth / imageHeight < 1
+      const imageAspectRatio = imageWidth / imageHeight
+      const containerAspectRatio = containerWidth / containerHeight
 
       if (fit === ObjectFit.SCALE_DOWN) {
         const isSmaller = imageWidth < containerWidth && imageHeight < containerHeight
@@ -153,9 +160,9 @@ export default defineComponent({
         case ObjectFit.NONE:
           return { width: 'auto', height: 'auto' }
         case ObjectFit.CONTAIN:
-          return vertical ? { width: 'auto' } : { height: 'auto' }
+          return (imageAspectRatio < containerAspectRatio) ? { width: 'auto' } : { height: 'auto' }
         case ObjectFit.COVER:
-          return vertical ? { height: 'auto' } : { width: 'auto' }
+          return (imageAspectRatio < containerAspectRatio) ? { height: 'auto' } : { width: 'auto' }
         default:
           return {}
       }

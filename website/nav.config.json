@@ -192,6 +192,10 @@
             {
               "path": "/skeleton",
               "title": "Skeleton 骨架屏"
+            },
+            {
+              "path": "/empty",
+              "title": "Empty 空状态"
             }
           ]
         },
@@ -223,6 +227,10 @@
         {
           "groupName": "Navigation",
           "list": [
+            {
+              "path": "/affix",
+              "title": "Affix 固钉"
+            },
             {
               "path": "/menu",
               "title": "NavMenu 导航菜单"
@@ -502,6 +510,10 @@
             {
               "path": "/skeleton",
               "title": "Skeleton"
+            },
+            {
+              "path": "/empty",
+              "title": "Empty"
             }
           ]
         },
@@ -533,6 +545,10 @@
         {
           "groupName": "Navigation",
           "list": [
+            {
+              "path": "/affix",
+              "title": "Affix"
+            },
             {
               "path": "/menu",
               "title": "NavMenu"
@@ -816,6 +832,10 @@
             {
               "path": "/skeleton",
               "title": "Skeleton"
+            },
+            {
+              "path": "/empty",
+              "title": "Empty"
             }
           ]
         },
@@ -847,6 +867,10 @@
         {
           "groupName": "Navigation",
           "list": [
+            {
+              "path": "/affix",
+              "title": "Affix"
+            },
             {
               "path": "/menu",
               "title": "NavMenu"
@@ -1130,6 +1154,10 @@
             {
               "path": "/skeleton",
               "title": "Skeleton"
+            },
+            {
+              "path": "/empty",
+              "title": "Empty"
             }
           ]
         },
@@ -1161,6 +1189,10 @@
         {
           "groupName": "Navigation",
           "list": [
+            {
+              "path": "/affix",
+              "title": "Affix"
+            },
             {
               "path": "/menu",
               "title": "NavMenu"
@@ -1444,6 +1476,10 @@
             {
               "path": "/skeleton",
               "title": "Skeleton"
+            },
+            {
+              "path": "/empty",
+              "title": "Empty"
             }
           ]
         },
@@ -1475,6 +1511,10 @@
         {
           "groupName": "Navigation",
           "list": [
+            {
+              "path": "/affix",
+              "title": "Affix"
+            },
             {
               "path": "/menu",
               "title": "NavMenu"

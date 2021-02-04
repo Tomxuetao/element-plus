@@ -203,7 +203,7 @@ DateTimePickerはDatePickerとTimePickerから派生したものです。属性�
 | end-placeholder | 範囲終了日のプレースホルダ | string | — | — |
 | time-arrow-control | 矢印ボタンで時間を選ぶかどうか | boolean | — | false |
 | type | ピッカーのタイプ | string | year/month/date/datetime/ week/datetimerange/daterange | date |
-| format | インプットボックスの表示値のフォーマット | string | see [date formats](#/en-US/component/date-picker#date-formats) | yyyy-MM-dd HH:mm:ss |
+| format | インプットボックスの表示値のフォーマット | string | see [date formats](#/en-US/component/date-picker#date-formats) | YYYY-MM-DD HH:mm:ss |
 | align | アライメント | left/center/right | left |
 | popper-class | DateTimePickerのドロップダウンのカスタムクラス名 | string | — | — |
 | range-separator | レンジセパレータ | string | - | '-' |
@@ -213,15 +213,10 @@ DateTimePickerはDatePickerとTimePickerから派生したものです。属性�
 | unlink-panels | レンジピッカーで2つのデータパネルのリンクを解除する | boolean | — | false |
 | prefix-icon | カスタムプレフィックスアイコンクラス | string | — | el-icon-date |
 | clear-icon | カスタムクリアアイコンクラス | string | — | el-icon-circle-close |
-| shortcuts | a { text, onClick } object array to set shortcut options, check the table below | object[] | — | — |
+| shortcuts | an object array to set shortcut options | object[{ text: string, value: Date }] | — | — |
 | disabledDate | a function determining if a date is disabled with that date as its parameter. Should return a Boolean | function | — | — |
 | cellClassName | set custom className | Function(Date) | — | — |
 
-### ショートカット
-| Attribute      | Description          | Type      | Accepted Values       | Default  |
-|---------- |-------------- |---------- |--------------------------------  |-------- |
-| text | title of the shortcut | string | — | — |
-| onClick | callback function, triggers when the shortcut is clicked, with the `vm` as its parameter. You can change the picker value by emitting the `pick` event. Example: `vm.$emit('pick', new Date())`| function | — | — |
 
 ### イベント
 | Event Name | Description | Parameters |

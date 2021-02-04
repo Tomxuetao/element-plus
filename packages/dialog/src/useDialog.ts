@@ -1,12 +1,12 @@
-import { computed, ref, watch, nextTick, onMounted, CSSProperties } from 'vue'
+import { computed, ref, watch, nextTick, onMounted } from 'vue'
 
 import isServer from '@element-plus/utils/isServer'
 import { UPDATE_MODEL_EVENT } from '@element-plus/utils/constants'
 import PopupManager from '@element-plus/utils/popup-manager'
-import { clearTimer } from '@element-plus/utils/util'
+import { clearTimer, isNumber } from '@element-plus/utils/util'
 import { useLockScreen, useRestoreActive, useModal } from '@element-plus/hooks'
 
-import type { Ref } from 'vue'
+import type { Ref, CSSProperties } from 'vue'
 import type { SetupContext } from '@vue/runtime-core'
 import type { UseDialogProps } from './dialog'
 
@@ -26,12 +26,19 @@ export default function(props: UseDialogProps, ctx: SetupContext, targetRef: Ref
   const zIndex = ref(props.zIndex || PopupManager.nextZIndex())
   const modalRef = ref<HTMLElement>(null)
 
+  const normalizeWidth = () => {
+    if(isNumber(props.width))
+      return `${props.width}px`
+    else
+      return props.width
+  }
+
   const style = computed(() => {
     const style = {} as CSSProperties
     if (!props.fullscreen) {
       style.marginTop = props.top
       if (props.width) {
-        style.width = props.width
+        style.width = normalizeWidth()
       }
     }
     return style
@@ -47,6 +54,10 @@ export default function(props: UseDialogProps, ctx: SetupContext, targetRef: Ref
     if (props.destroyOnClose) {
       rendered.value = false
     }
+  }
+
+  function beforeLeave() {
+    ctx.emit(CLOSE_EVENT)
   }
 
   function open() {
@@ -127,8 +138,8 @@ export default function(props: UseDialogProps, ctx: SetupContext, targetRef: Ref
   watch(() => props.modelValue, val => {
     if (val) {
       closed.value = false
-      rendered.value = true // enables lazy rendering
       open()
+      rendered.value = true // enables lazy rendering
       ctx.emit(OPEN_EVENT)
       zIndex.value = props.zIndex ? zIndex.value++ : PopupManager.nextZIndex()
       // this.$el.addEventListener('scroll', this.updatePopper)
@@ -139,9 +150,8 @@ export default function(props: UseDialogProps, ctx: SetupContext, targetRef: Ref
       })
     } else {
       // this.$el.removeEventListener('scroll', this.updatePopper
-      close()
-      if (!closed.value) {
-        ctx.emit(CLOSE_EVENT)
+      if (visible.value) {
+        close()
       }
     }
   })
@@ -157,6 +167,7 @@ export default function(props: UseDialogProps, ctx: SetupContext, targetRef: Ref
   return {
     afterEnter,
     afterLeave,
+    beforeLeave,
     handleClose,
     onModalClick,
     closed,

@@ -1,7 +1,9 @@
 import { nextTick } from 'vue'
 import { mount } from '@vue/test-utils'
 import { rAF } from '@element-plus/test-utils/tick'
+import triggerCompositeClick from '@element-plus/test-utils/composite-click'
 import Dialog from '../'
+
 
 const AXIOM = 'Rem is the best girl'
 
@@ -150,7 +152,7 @@ describe('Dialog.vue', () => {
       await nextTick()
       expect(wrapper.find('.el-overlay').exists()).toBe(true)
 
-      await wrapper.find('.el-overlay').trigger('click')
+      await triggerCompositeClick(wrapper.find('.el-overlay'))
       expect(wrapper.vm.visible).toBe(false)
     })
   })
@@ -229,6 +231,33 @@ describe('Dialog.vue', () => {
       await rAF()
       await nextTick()
       expect(wrapper.find('.el-dialog__body').exists()).toBe(false)
+    })
+
+    test('should emit close event', async () => {
+      let visible = true
+      const onClose = jest.fn()
+      const onClosed = jest.fn()
+      const wrapper = _mount({
+        props: {
+          modelValue: visible,
+          'onUpdate:modelValue': (val: boolean) => visible = val,
+          onClose,
+          onClosed,
+        },
+      })
+
+      expect(wrapper.vm.visible).toBe(true)
+      await nextTick()
+      await rAF()
+      await nextTick()
+
+      await triggerCompositeClick(wrapper.find('.el-overlay'))
+      await nextTick()
+      await rAF()
+      await nextTick()
+      expect(onClose).toHaveBeenCalled()
+      expect(onClosed).toHaveBeenCalled()
+      expect(visible).toBe(false)
     })
   })
 })

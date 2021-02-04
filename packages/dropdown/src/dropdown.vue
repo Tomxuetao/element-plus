@@ -10,13 +10,14 @@
     popper-class="el-dropdown__popper"
     append-to-body
     transition="el-zoom-in-top"
+    :stop-popper-mouse-event="false"
     :gpu-acceleration="false"
   >
     <template #default>
       <slot name="dropdown"></slot>
     </template>
     <template #trigger>
-      <div class="el-dropdown">
+      <div :class="['el-dropdown', dropdownSize ? 'el-dropdown--' + dropdownSize : '']">
         <slot v-if="!splitButton" name="default"> </slot>
         <template v-else>
           <el-button-group>
@@ -155,7 +156,7 @@ export default defineComponent({
         () => {
           visible.value = true
         },
-        props.trigger === 'click' ? 0 : props.showTimeout,
+        ['click', 'contextmenu'].includes(props.trigger) ? 0 : props.showTimeout,
       )
     }
 
@@ -170,7 +171,7 @@ export default defineComponent({
         () => {
           visible.value = false
         },
-        props.trigger === 'click' ? 0 : props.hideTimeout,
+        ['click', 'contextmenu'].includes(props.trigger) ? 0 : props.hideTimeout,
       )
     }
 
@@ -225,6 +226,11 @@ export default defineComponent({
         on(triggerElm.value, 'mouseleave', hide)
       } else if (props.trigger === 'click') {
         on(triggerElm.value, 'click', handleClick)
+      } else if (props.trigger === 'contextmenu') {
+        on(triggerElm.value, 'contextmenu', e => {
+          e.preventDefault()
+          handleClick()
+        })
       }
 
       Object.assign(_instance, {

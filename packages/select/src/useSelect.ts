@@ -192,19 +192,19 @@ export const useSelect = (props, states: States, ctx) => {
 
       if (props.filterable) {
         states.query = props.remote ? '' : states.selectedLabel
-        handleQueryChange(states.query)
         if (props.multiple) {
           input.value.focus()
         } else {
-          if (!props.remote) {
-            states.selectEmitter.emit('elOptionQueryChange', '')
-            states.selectEmitter.emit('elOptionGroupQueryChange')
-          }
-
           if (states.selectedLabel) {
             states.currentPlaceholder = states.selectedLabel
             states.selectedLabel = ''
           }
+        }
+        if (!props.multiple && !props.remote) {
+          states.selectEmitter.emit('elOptionQueryChange', '')
+          states.selectEmitter.emit('elOptionGroupQueryChange')
+        } else {
+          handleQueryChange(states.query)
         }
       }
     }
@@ -520,16 +520,22 @@ export const useSelect = (props, states: States, ctx) => {
     }
   }
 
+  const getEl = option => {
+    const options = states.options.filter(item => item.value === option.value)
+    if (options.length > 0) {
+      return options[0].$el
+    }
+  }
+
   const scrollToOption = option => {
-    const target = Array.isArray(option) ? option[0]?.$el : option.$el
+    const target = Array.isArray(option) ? getEl(option[0]) : getEl(option)
     if (popper.value && target) {
-      const menu = popper.value?.$el?.querySelector?.('.el-select-dropdown__wrap')
+      const menu = popper.value?.popperRef?.querySelector?.('.el-select-dropdown__wrap')
       if (menu) {
         scrollIntoView(menu, target)
       }
     }
-    // TODO: handleScroll
-    // scrollbar.value?.handleScroll()
+    scrollbar.value?.handleScroll()
   }
 
   const onOptionCreate = (vm: ComponentPublicInstance) => {

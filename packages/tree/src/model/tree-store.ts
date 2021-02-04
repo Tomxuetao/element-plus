@@ -41,11 +41,14 @@ export default class TreeStore {
     }
 
     this.nodesMap = {}
+  }
 
+  initialize() {
     this.root = new Node({
       data: this.data,
       store: this,
     })
+    this.root.initialize()
 
     if (this.lazy && this.load) {
       const loadFn = this.load

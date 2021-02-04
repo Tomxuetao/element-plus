@@ -152,6 +152,9 @@ export default defineComponent({
       defaultExpandAll: props.defaultExpandAll,
       filterNodeMethod: props.filterNodeMethod,
     }))
+
+    store.value.initialize()
+
     const root = ref<Node>(store.value.root)
     const currentNode = ref<Node>(null)
     const el$ = ref<Nullable<HTMLElement>>(null)
@@ -181,7 +184,7 @@ export default defineComponent({
 
     watch(() => props.data, newVal => {
       store.value.setData(newVal)
-    })
+    }, { deep: true })
 
     watch(() => props.checkStrictly, newVal => {
       store.value.checkStrictly = newVal
