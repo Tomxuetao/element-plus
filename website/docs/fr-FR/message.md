@@ -15,6 +15,8 @@ S'affiche en haut de la page et disparaît après trois secondes.
 </template>
 
 <script>
+  import { h } from 'vue';
+
   export default {
     methods: {
       open() {
@@ -22,7 +24,6 @@ S'affiche en haut de la page et disparaît après trois secondes.
       },
 
       openVn() {
-        const h = this.$createElement;
         this.$message({
           message: h('p', null, [
             h('span', null, 'Message peut être '),
@@ -188,17 +189,15 @@ Bien que la propriété `message` supporte le HTML, générer du contenu HTML dy
 
 ### Méthode globale
 
-Element Plus ajoute une méthode `$message` à Vue.prototype. Vous pouvez donc appeler `Message` dans l'instance de Vue comme dans cette page.
+Element Plus ajoute une méthode `$message` à `app.config.globalProperties`. Vous pouvez donc appeler `Message` dans l'instance de Vue comme dans cette page.
 
 ### Import à la demande
 
-Importez `Message`:
-
 ```javascript
-import { Message } from 'element-plus';
+import { ElMessage } from 'element-plus';
 ```
 
-Dans ce cas il faudra appeler `Message(options)`. Les méthodes des différents types sont aussi ajoutées, e.g. `Message.success(options)`. Vous pouvez appeler `Message.closeAll()` pour fermer manuellement toutes les instances.
+Dans ce cas il faudra appeler `ElMessage(options)`. Les méthodes des différents types sont aussi ajoutées, e.g. `ElMessage.success(options)`. Vous pouvez appeler `ElMessage.closeAll()` pour fermer manuellement toutes les instances.
 
 ### Options
 

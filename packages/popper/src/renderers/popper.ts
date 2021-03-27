@@ -1,20 +1,27 @@
-import { withDirectives, h, Transition, vShow } from 'vue'
+import { withDirectives, Transition, vShow, withCtx, createVNode } from 'vue'
+import { NOOP } from '@vue/shared'
+import { PatchFlags } from '@element-plus/utils/vnode'
 import { stop } from '@element-plus/utils/dom'
 
-import type { VNode } from 'vue'
-import type { Effect } from '../popper/defaults'
+import type { VNode, Ref } from 'vue'
+import type { Effect } from '../use-popper/defaults'
 
 interface IRenderPopperProps {
-  name: string
   effect: Effect
+  name: string
+  stopPopperMouseEvent: boolean
   popperClass: string
+  popperStyle?: Partial<CSSStyleDeclaration>
   popperId: string
-  pure: boolean
+  popperRef?: Ref<HTMLElement>
+  pure?: boolean
   visibility: boolean
-  onMouseEnter: () => void
-  onMouseLeave: () => void
-  onAfterEnter: () => void
-  onAfterLeave: () => void
+  onMouseenter: () => void
+  onMouseleave: () => void
+  onAfterEnter?: () => void
+  onAfterLeave?: () => void
+  onBeforeEnter?: () => void
+  onBeforeLeave?: () => void
 }
 
 export default function renderPopper(
@@ -24,54 +31,78 @@ export default function renderPopper(
   const {
     effect,
     name,
+    stopPopperMouseEvent,
     popperClass,
+    popperStyle,
+    popperRef,
     pure,
     popperId,
     visibility,
-    onMouseEnter,
-    onMouseLeave,
-    ...transitionEvents
+    onMouseenter,
+    onMouseleave,
+    onAfterEnter,
+    onAfterLeave,
+    onBeforeEnter,
+    onBeforeLeave,
   } = props
 
   const kls = [
+    popperClass,
     'el-popper',
     'is-' + effect,
-    popperClass,
-    pure ? 'el-popper__pure' : '',
+    pure ? 'is-pure' : '',
   ]
   /**
    * Equivalent to
    * <transition :name="name">
-   *  <div  v-show="visibility" :aria-hidden="!visibility" :class="kls" ref="popperRef" role="tooltip" @mouseenter="" @mouseleave="" @click="">
-   *    {children}
+   *  <div v-show="visibility" :aria-hidden="!visibility" :class="kls" ref="popperRef" role="tooltip" @mouseenter="" @mouseleave="" @click="">
+   *    <slot />
    *  </div>
    * </transition>
    */
-  return h(
+
+  const mouseUpAndDown = stopPopperMouseEvent ? stop : NOOP
+  return createVNode(
     Transition,
     {
       name,
-      ...transitionEvents,
+      'onAfterEnter': onAfterEnter,
+      'onAfterLeave': onAfterLeave,
+      'onBeforeEnter': onBeforeEnter,
+      'onBeforeLeave': onBeforeLeave,
     },
     {
-      default: () =>
-        withDirectives(
-          h(
-            'div',
-            {
-              'aria-hidden': String(!visibility),
-              class: kls,
-              id: popperId,
-              ref: 'popperRef',
-              role: 'tooltip',
-              onMouseEnter,
-              onMouseLeave,
-              onClick: stop,
-            },
-            children,
-          ),
-          [[vShow, visibility]],
+      default: withCtx(() => [withDirectives(
+        createVNode(
+          'div',
+          {
+            'aria-hidden': String(!visibility),
+            class: kls,
+            style: popperStyle ?? {},
+            id: popperId,
+            ref: popperRef ?? 'popperRef',
+            role: 'tooltip',
+            onMouseenter,
+            onMouseleave,
+            onClick: stop,
+            onMousedown: mouseUpAndDown,
+            onMouseup: mouseUpAndDown,
+          },
+          children,
+          PatchFlags.CLASS | PatchFlags.STYLE | PatchFlags.PROPS | PatchFlags.HYDRATE_EVENTS,
+          [
+            'aria-hidden',
+            'onMouseenter',
+            'onMouseleave',
+            'onMousedown',
+            'onMouseup',
+            'onClick',
+            'id',
+          ],
         ),
+        [[vShow, visibility]],
+      )]),
     },
+    PatchFlags.PROPS, ['name', 'onAfterEnter', 'onAfterLeave', 'onBeforeEnter', 'onBeforeLeave'],
   )
 }

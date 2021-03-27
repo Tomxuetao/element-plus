@@ -2,7 +2,7 @@
   <div
     ref="button"
     class="el-slider__button-wrapper"
-    :class="{ 'hover': hovering, 'dragging': dragging }"
+    :class="{ hover: hovering, dragging: dragging }"
     :style="wrapperStyle"
     tabindex="0"
     @mouseenter="handleMouseEnter"
@@ -16,25 +16,28 @@
     @keydown.down.prevent="onLeftKeyDown"
     @keydown.up.prevent="onRightKeyDown"
   >
-    <el-popper
-      v-if="showTooltip"
+    <el-tooltip
       ref="tooltip"
-      v-model:visible="tooltipVisible"
+      v-model="tooltipVisible"
       placement="top"
+      :stop-popper-mouse-event="false"
       :popper-class="tooltipClass"
-      manual-mode
+      :disabled="!showTooltip"
+      manual
     >
-      <template #default>{{ formatValue }}</template>
-      <template #trigger>
-        <div class="el-slider__button el-tooltip" :class="{ 'hover': hovering, 'dragging': dragging }"></div>
+      <template #content>
+        <span>{{ formatValue }}</span>
       </template>
-    </el-popper>
-    <div v-else class="el-slider__button el-tooltip" :class="{ 'hover': hovering, 'dragging': dragging }"></div>
+      <div
+        class="el-slider__button"
+        :class="{ hover: hovering, dragging: dragging }"
+      ></div>
+    </el-tooltip>
   </div>
 </template>
 
 <script lang="ts">
-import { Popper as ElPopper } from '@element-plus/popper'
+import ElTooltip from '@element-plus/tooltip'
 import { UPDATE_MODEL_EVENT } from '@element-plus/utils/constants'
 import { defineComponent, reactive, toRefs } from 'vue'
 import { useSliderButton } from './useSliderButton'
@@ -43,7 +46,7 @@ export default defineComponent({
   name: 'ElSliderButton',
 
   components: {
-    ElPopper,
+    ElTooltip,
   },
 
   props: {
@@ -64,7 +67,6 @@ export default defineComponent({
   emits: [UPDATE_MODEL_EVENT],
 
   setup(props, { emit }) {
-
     const initData = reactive({
       hovering: false,
       dragging: false,
@@ -80,8 +82,8 @@ export default defineComponent({
 
     const {
       tooltip,
-      tooltipVisible,
       showTooltip,
+      tooltipVisible,
       wrapperStyle,
       formatValue,
       handleMouseEnter,
@@ -92,11 +94,7 @@ export default defineComponent({
       setPosition,
     } = useSliderButton(props, initData, emit)
 
-
-    const {
-      hovering,
-      dragging,
-    } = toRefs(initData)
+    const { hovering, dragging } = toRefs(initData)
 
     return {
       tooltip,

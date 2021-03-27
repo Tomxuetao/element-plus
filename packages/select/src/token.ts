@@ -7,34 +7,49 @@ interface SelectGroupContext {
 
 export interface SelectContext {
   props: {
-    multiple: boolean
-    value: unknown[]
-    multipleLimit: number
-    valueKey: string
-    modelValue: unknown[]
-    popperClass: string
+    multiple?: boolean
+    multipleLimit?: number
+    valueKey?: string
+    modelValue?: string | number | unknown[]
+    popperClass?: string
+    remote?: boolean
   }
   selectWrapper: HTMLElement
-  cachedOptions: any[]
-  selected: any | any[]
-  multiple: boolean
+  cachedOptions: Map<any,any>
   hoverIndex: number
-  setSelected(): void
-  valueKey: string
-  remote: boolean
   optionsCount: number
   filteredOptionsCount: number
-  options: unknown[]
+  options: Map<any,any>
+  optionsArray: any[]
+  selected: any | any[]
   selectEmitter: Emitter
-  onOptionDestroy(i: number)
-  handleOptionSelect(vm: unknown, byClick: boolean)
+  setSelected(): void
+  onOptionCreate(vm: SelectOptionProxy): void
+  onOptionDestroy(key: number | string | Record<string, any>): void
+  handleOptionSelect(vm: unknown, byClick: boolean): void
 }
 
-export const selectGroupKey: InjectionKey<SelectGroupContext> = Symbol('SelectGroup')
+// For individual build sharing injection key, we had to make `Symbol` to string
+export const selectGroupKey = 'ElSelectGroup' as unknown as InjectionKey<SelectGroupContext>
 
-export const selectKey: InjectionKey<SelectContext> = Symbol('Select')
+export const selectKey = 'ElSelect' as unknown as InjectionKey<SelectContext>
 
 export const selectEvents = {
   queryChange: 'elOptionQueryChange',
   groupQueryChange: 'elOptionGroupQueryChange',
+}
+
+export interface SelectOptionProxy {
+  value: string | number | Record<string, string>
+  label: string | number
+  created: boolean
+  disabled: boolean
+  currentLabel: string
+  itemSelected: boolean
+  isDisabled: boolean
+  select: SelectContext
+  hoverItem: () => void
+  visible: boolean
+  hover: boolean
+  selectOptionClick: () => void
 }

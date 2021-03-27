@@ -60,24 +60,20 @@ import {
   onUpdated,
 } from 'vue'
 import { RepeatClick } from '@element-plus/directives'
-import ElInput from '@element-plus/input/src/index.vue'
+import ElInput from '@element-plus/input'
+import { useGlobalConfig } from '@element-plus/utils/util'
+import { isValidComponentSize } from '@element-plus/utils/validators'
+import { elFormKey, elFormItemKey } from '@element-plus/form'
+import { toRawType } from '@vue/shared'
+
 import type { PropType } from 'vue'
-import { parseInt } from 'lodash'
-const ELEMENT: {
-  size?: number
-} = {}
-interface ElForm {
-  disabled: boolean
-  statusIcon: string
-}
-interface ElFormItem {
-  elFormItemSize: number
-  validateState: string
-}
+import type { ElFormContext, ElFormItemContext } from '@element-plus/form'
+
 interface IData {
   currentValue: number | string
   userInput: null | number | string
 }
+
 export default defineComponent({
   name: 'ElInputNumber',
   components: {
@@ -103,14 +99,19 @@ export default defineComponent({
       type: Number,
       default: -Infinity,
     },
-    modelValue: Number,
+    modelValue: {
+      required: true,
+      validator: val => {
+        return toRawType(val) === 'Number' || val === undefined
+      },
+    },
     disabled: {
       type: Boolean,
       default: false,
     },
     size: {
-      type: String as PropType<'large' | 'small'>,
-      validator: (val: string) => ['large', 'small'].includes(val),
+      type: String as PropType<ComponentSize>,
+      validator: isValidComponentSize,
     },
     controls: {
       type: Boolean,
@@ -130,13 +131,16 @@ export default defineComponent({
   },
   emits: ['update:modelValue', 'change', 'input', 'blur', 'focus'],
   setup(props, { emit }) {
+    const ELEMENT = useGlobalConfig()
+    const elForm = inject(elFormKey, {} as ElFormContext)
+    const elFormItem = inject(elFormItemKey, {} as ElFormItemContext)
+
     const input = ref(null)
     const data = reactive<IData>({
-      currentValue: 0,
+      currentValue: props.modelValue,
       userInput: null,
     })
-    const elForm = inject<ElForm>('elForm', {} as any)
-    const elFormItem = inject<ElFormItem>('elFormItem', {} as any)
+
     const minDisabled = computed(() => {
       return _decrease(props.modelValue) < props.min
     })
@@ -160,10 +164,10 @@ export default defineComponent({
       return props.controls && props.controlsPosition === 'right'
     })
     const inputNumberSize = computed(() => {
-      return props.size || elFormItem.elFormItemSize || ELEMENT?.size
+      return props.size || elFormItem.size || ELEMENT.size
     })
     const inputNumberDisabled = computed(() => {
-      return props.disabled || !!(elForm || {}).disabled
+      return props.disabled || elForm.disabled
     })
     const displayValue = computed(() => {
       if (data.userInput !== null) {
@@ -229,13 +233,13 @@ export default defineComponent({
       ) {
         newVal = toPrecision(newVal, props.precision)
       }
-      if (newVal >= props.max) newVal = props.max
-      if (newVal <= props.min) newVal = props.min
+      if (newVal !== undefined && newVal >= props.max) newVal = props.max
+      if (newVal !== undefined && newVal <= props.min) newVal = props.min
       if (oldVal === newVal) return
       data.userInput = null
       emit('update:modelValue', newVal)
       emit('input', newVal)
-      emit('change', newVal)
+      emit('change', newVal, oldVal)
       data.currentValue = newVal
     }
     const handleInput = value => {
@@ -265,12 +269,16 @@ export default defineComponent({
             newVal = toPrecision(newVal, props.precision)
           }
         }
-        if (newVal >= props.max) newVal = props.max
-        if (newVal <= props.min) newVal = props.min
+        if (newVal !== undefined && newVal >= props.max) {
+          newVal = props.max
+          emit('update:modelValue', newVal)
+        }
+        if (newVal !== undefined && newVal <= props.min) {
+          newVal = props.min
+          emit('update:modelValue', newVal)
+        }
         data.currentValue = newVal
         data.userInput = null
-        emit('update:modelValue', newVal)
-        emit('input', newVal)
       },
       { immediate: true },
     )
@@ -281,6 +289,9 @@ export default defineComponent({
       innerInput.setAttribute('aria-valuemin', props.min)
       innerInput.setAttribute('aria-valuenow', data.currentValue)
       innerInput.setAttribute('aria-disabled', inputNumberDisabled.value)
+      if (toRawType(props.modelValue) !== 'Number' && props.modelValue !== undefined) {
+        emit('update:modelValue', undefined)
+      }
     })
     onUpdated(() => {
       let innerInput = input.value.input

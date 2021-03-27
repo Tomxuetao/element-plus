@@ -3,10 +3,10 @@
     <div class="container">
       <div class="footer-main">
         <h4>{{ langConfig.links }}</h4>
-        <a href="https://github.com/ElemeFE/element" class="footer-main-link" target="_blank">{{ langConfig.repo }}</a>
-        <a href="https://github.com/ElemeFE/element/releases" class="footer-main-link" target="_blank">{{ langConfig.changelog }}</a>
-        <a href="https://github.com/ElemeFE/element/blob/dev/FAQ.md" class="footer-main-link" target="_blank">{{ langConfig.faq }}</a>
-        <a href="https://github.com/ElementUI/element-starter" class="footer-main-link" target="_blank">{{ langConfig.starter }}</a>
+        <a href="https://github.com/element-plus/element-plus" class="footer-main-link" target="_blank">{{ langConfig.repo }}</a>
+        <a href="https://github.com/element-plus/element-plus/releases" class="footer-main-link" target="_blank">{{ langConfig.changelog }}</a>
+        <a href="https://github.com/element-plus/element-plus/blob/dev/FAQ.md" class="footer-main-link" target="_blank">{{ langConfig.faq }}</a>
+        <a href="https://github.com/element-plus/element-plus-starter" class="footer-main-link" target="_blank">{{ langConfig.starter }}</a>
         <a :href="'/#/' + lang + '/component/custom-theme'" class="footer-main-link" target="_blank">{{ langConfig.theme }}</a>
         <a href="https://github.com/elemefe/element-react" class="footer-main-link" target="_blank">Element-React</a>
         <a href="https://github.com/ElemeFE/element-angular" class="footer-main-link" target="_blank">Element-Angular</a>
@@ -20,26 +20,25 @@
         <a href="https://github.com/ElementUI/awesome-element" class="footer-main-link" target="_blank">Awesome Element</a>
       </div>
       <div class="footer-social">
-        <p class="footer-social-title">Element {{ version && version.slice(0, 3) }} Fullerene</p>
+        <p class="footer-social-title">Element Team</p>
         <el-popover
           ref="weixin"
+          v-model:visible="footerVisible"
           placement="top"
           width="120"
           popper-class="footer-popover"
           trigger="hover"
         >
-          <div class="footer-popover-title">{{ langConfig.eleme }} UED</div>
-          <img src="../assets/images/qrcode.png" alt="">
+          <template #reference>
+            <i class="doc-icon-weixin elementdoc"></i>
+          </template>
+          <template #default>
+            <div class="footer-popover-title">{{ langConfig.eleme }} UED</div>
+            <img src="../assets/images/qrcode.png" alt="">
+          </template>
         </el-popover>
-        <!-- <i v-popover:weixin class="doc-icon-weixin elementdoc"></i> -->
-        <a href="https://github.com/elemefe" target="_blank">
+        <a href="https://github.com/element-plus/element-plus" target="_blank">
           <i class="doc-icon-github elementdoc"></i>
-        </a>
-        <a :href="gitterLink" target="_blank">
-          <i class="doc-icon-gitter elementdoc"></i>
-        </a>
-        <a href="https://www.netlify.com">
-          <img src="https://www.netlify.com/img/global/badges/netlify-light.svg" alt="Deploys by Netlify">
         </a>
       </div>
     </div>
@@ -47,18 +46,20 @@
 </template>
 <script>
 import compoLang from '../i18n/component.json'
+import { Language } from '../enums/language'
 const version = '1.0.0' // element version
 
 export default {
   data() {
     return {
       version,
+      footerVisible: false,
     }
   },
 
   computed: {
     lang() {
-      return this.$route.path.split('/')[1] || 'zh-CN'
+      return this.$route.path.split('/')[1] || Language.CN
     },
 
     langConfig() {
@@ -66,7 +67,7 @@ export default {
     },
 
     gitterLink() {
-      return this.lang === 'zh-CN' ? 'https://gitter.im/ElemeFE/element' : 'https://gitter.im/element-en/Lobby'
+      return this.lang === Language.CN ? 'https://gitter.im/ElemeFE/element' : 'https://gitter.im/element-en/Lobby'
     },
   },
 }

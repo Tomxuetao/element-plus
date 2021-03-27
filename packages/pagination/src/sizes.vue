@@ -19,8 +19,8 @@
 
 <script lang="ts">
 import { defineComponent, watch, computed, ref } from 'vue'
-import ElSelect from '@element-plus/select/src/select.vue'
-import ElOption from '@element-plus/select/src/option.vue'
+import ElSelect from '@element-plus/select'
+import ElOption from '@element-plus/option'
 import { t } from '@element-plus/locale'
 import isEqual from 'lodash/isEqual'
 import { usePagination } from './usePagination'
@@ -58,6 +58,10 @@ export default defineComponent({
           : props.pageSizes[0]
         emit('page-size-change', pageSize)
       }
+    })
+
+    watch(() => props.pageSize, newVal => {
+      innerPageSize.value = newVal
     })
 
     const innerPagesizes = computed(() => props.pageSizes)

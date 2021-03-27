@@ -1,6 +1,6 @@
 <script lang='ts'>
 import { h, defineComponent, inject, ComponentInternalInstance } from 'vue'
-import { RootTreeType } from './tree.d'
+import { RootTreeType } from './tree.type'
 
 export default defineComponent({
   name: 'ElTreeNodeContent',
@@ -28,5 +28,3 @@ export default defineComponent({
   },
 })
 </script>
-<style scoped>
-</style>

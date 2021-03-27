@@ -1,27 +1,27 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const path = require('path')
+const webpack = require('webpack')
 const { VueLoaderPlugin } = require('vue-loader')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin')
+
 // const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
 
 const isProd = process.env.NODE_ENV === 'production'
 const isPlay = !!process.env.PLAY_ENV
 
-const babelOptions = {
-  plugins: ['@vue/babel-plugin-jsx'],
-}
-
 const config = {
   mode: isProd ? 'production' : 'development',
   devtool: !isProd && 'cheap-module-eval-source-map',
-  entry: isPlay ? path.resolve(__dirname, './play.js') : path.resolve(__dirname, './entry.js'),
+  entry: isPlay
+    ? path.resolve(__dirname, './play.js')
+    : path.resolve(__dirname, './entry.js'),
   output: {
     path: path.resolve(__dirname, '../website-dist'),
     publicPath: '/',
     filename: isProd ? '[name].[hash].js' : '[name].js',
   },
-  stats: 'verbose',
   module: {
     rules: [
       {
@@ -29,40 +29,9 @@ const config = {
         use: 'vue-loader',
       },
       {
-        test: /\.ts$/,
+        test: /\.(ts|js)x?$/,
         exclude: /node_modules/,
-        loader: 'ts-loader',
-        options: {
-          appendTsSuffixTo: [/\.vue$/],
-          transpileOnly: true,
-        },
-      },
-      {
-        test: /\.tsx$/,
-        exclude: /node_modules/,
-        use: [
-          {
-            loader: 'babel-loader',
-            options: babelOptions,
-          },
-          {
-            loader: 'ts-loader',
-            options: {
-              appendTsxSuffixTo: [/\.vue$/],
-              transpileOnly: true,
-            },
-          },
-        ],
-      },
-      {
-        test: /\.js(x?)$/,
-        exclude: /node_modules/,
-        use: [
-          {
-            loader: 'babel-loader',
-            options: babelOptions,
-          },
-        ],
+        loader: 'babel-loader',
       },
       {
         test: /\.md$/,
@@ -94,7 +63,7 @@ const config = {
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.vue', '.json'],
     alias: {
-      'vue': '@vue/runtime-dom',
+      vue: 'vue/dist/vue.esm-browser.js',
       examples: path.resolve(__dirname),
     },
   },
@@ -115,6 +84,12 @@ const config = {
     contentBase: __dirname,
     overlay: true,
   },
+  optimization: {
+    minimize: true,
+    minimizer: [
+      new CssMinimizerPlugin(),
+    ],
+  },
 }
 
 const cssRule = {
@@ -130,14 +105,20 @@ const cssRule = {
   ],
 }
 
-if (isProd) {
-  config.plugins.push(new MiniCssExtractPlugin({
+// if (isProd) {
+config.plugins.push(
+  new MiniCssExtractPlugin({
     filename: '[name].[contenthash].css',
     chunkFilename: '[id].[contenthash].css',
-  }))
-  cssRule.use.unshift(MiniCssExtractPlugin.loader)
-} else {
-  cssRule.use.unshift('style-loader')
-}
+  }),
+  new webpack.DefinePlugin({
+    __VUE_OPTIONS_API__: JSON.stringify(true),
+    __VUE_PROD_DEVTOOLS__: JSON.stringify(false),
+  }),
+)
+cssRule.use.unshift(MiniCssExtractPlugin.loader)
+// } else {
+cssRule.use.unshift('style-loader')
+// }
 config.module.rules.push(cssRule)
 module.exports = config
