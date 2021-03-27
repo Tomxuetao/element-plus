@@ -18,23 +18,22 @@
       </div>
     </div>
     <div class="sponsors">
-      <a
-        v-show="lang !== 'zh-CN'"
-        class="sponsor"
-        href="https://tipe.io/?ref=element"
-        target="_blank"
-      >
-        <img width="35px" src="~examples/assets/images/tipe.svg" alt="tipe.io">
+      <a class="sponsor" href="https://www.duohui.cn/?utm_source=element&utm_medium=web&utm_campaign=element-index" target="_blank">
+        <img width="45" src="~examples/assets/images/duohui.svg" alt="duohui">
         <div>
-          <p>Sponsored by Tipe.io</p>
-          <p>Next Generation API-first CMS</p>
+          <p>{{ sponsorLabel }} <span class="name">多会</span></p>
+          <p>活动服务销售平台</p>
         </div>
       </a>
-      <a class="sponsor" href="https://www.duohui.cn/?utm_source=element&utm_medium=web&utm_campaign=element-index" target="_blank">
-        <img width="45px" src="~examples/assets/images/duohui.svg" alt="duohui">
+      <a
+        class="sponsor"
+        href="https://bit.dev/?from=element-ui"
+        target="_blank"
+      >
+        <img width="45" src="~examples/assets/images/bit.svg" alt="bit">
         <div>
-          <p>Sponsored by 多会</p>
-          <p>炫酷的新一代活动票务系统</p>
+          <p>{{ sponsorLabel }} <span class="name">bit</span></p>
+          <p>Share Code</p>
         </div>
       </a>
     </div>
@@ -98,6 +97,9 @@ export default {
     }
   },
   computed: {
+    sponsorLabel() {
+      return this.lang === 'zh-CN' ? '赞助商' : 'Sponsored by'
+    },
     langConfig() {
       return pageLang.filter(config => config.lang === this.lang)[0].pages.index
     },
@@ -108,10 +110,12 @@ export default {
     })
   },
   beforeUnmount() {
-    window.removeEventListener('scroll', this.throttledHandleScroll)
+    const dom = document.querySelector('#app>.el-scrollbar>.el-scrollbar__wrap.el-scrollbar__wrap--hidden-default')
+    dom.removeEventListener('scroll', this.throttledHandleScroll)
   },
   mounted() {
-    window.addEventListener('scroll', this.throttledHandleScroll)
+    const dom = document.querySelector('#app>.el-scrollbar>.el-scrollbar__wrap.el-scrollbar__wrap--hidden-default')
+    dom.addEventListener('scroll', this.throttledHandleScroll)
   },
   methods: {
     handleScroll() {
@@ -126,12 +130,12 @@ export default {
   },
 }
 </script>
-<style lang="sass" scoped>
+<style lang="scss" scoped>
 .banner {
   text-align: center;
 }
 .banner-desc {
-  padding-top: 20px;
+  padding-top: 30px;
 
   h1 {
     font-size: 34px;
@@ -144,7 +148,7 @@ export default {
     font-size: 18px;
     line-height: 28px;
     color: #888;
-    margin: 10px 0 5px;
+    margin: 20px 0 5px;
   }
 }
 .sponsors {
@@ -157,6 +161,11 @@ export default {
   width: 300px;
   height: 100px;
   justify-content: center;
+
+  .name {
+    font-weight: bold;
+    color: #666;
+  }
 
   img {
     margin-right: 20px;

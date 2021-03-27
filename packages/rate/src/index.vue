@@ -47,10 +47,9 @@ import {
 import { isObject, isArray } from '@vue/shared'
 import { hasClass } from '@element-plus/utils/dom'
 import { EVENT_CODE } from '@element-plus/utils/aria'
+import { elFormKey } from '@element-plus/form'
 
-interface ElForm {
-  disabled: boolean
-}
+import type { ElFormContext } from '@element-plus/form'
 
 export default defineComponent({
   name: 'ElRate',
@@ -126,10 +125,11 @@ export default defineComponent({
   },
   emits: ['update:modelValue', 'change'],
   setup(props, { emit }) {
+    const elForm = inject(elFormKey, {} as ElFormContext)
+
     const currentValue = ref(props.modelValue)
 
-    const elForm = inject<ElForm>('elForm')
-    const rateDisabled = computed(() => props.disabled || (elForm || {}).disabled)
+    const rateDisabled = computed(() => props.disabled || elForm.disabled)
 
     const text = computed(() => {
       let result = ''
@@ -192,9 +192,9 @@ export default defineComponent({
     const classes = computed(() => {
       let result = Array(props.max)
       let threshold = currentValue.value
-      if (props.allowHalf && currentValue.value !== Math.floor(currentValue.value)) {
-        threshold--
-      }
+      // if (props.allowHalf && currentValue.value !== Math.floor(currentValue.value)) {
+      //   threshold--
+      // }
       result.fill(activeClass.value, 0, threshold)
       result.fill(voidClass.value, threshold, props.max)
       return result
@@ -261,8 +261,8 @@ export default defineComponent({
       }
       _currentValue = _currentValue < 0 ? 0 : _currentValue
       _currentValue = _currentValue > props.max ? props.max : _currentValue
-      emit('update:modelValue', currentValue)
-      emit('change', currentValue)
+      emit('update:modelValue', _currentValue)
+      emit('change', _currentValue)
       return _currentValue
     }
 

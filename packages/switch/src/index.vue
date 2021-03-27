@@ -26,7 +26,10 @@
       <i v-if="inactiveIconClass" :class="[inactiveIconClass]"></i>
       <span v-if="!inactiveIconClass && inactiveText" :aria-hidden="checked">{{ inactiveText }}</span>
     </span>
-    <span ref="core" class="el-switch__core" :style="{ 'width': coreWidth + 'px' }">
+    <span ref="core" class="el-switch__core" :style="{ 'width': (width || 40) + 'px' }">
+      <div class="el-switch__action">
+        <i v-if="loading" class="el-icon-loading"></i>
+      </div>
     </span>
     <span
       v-if="activeIconClass || activeText"
@@ -39,11 +42,10 @@
 </template>
 <script lang='ts'>
 import { defineComponent, computed, onMounted, ref, inject, nextTick, watch } from 'vue'
+import { elFormKey, elFormItemKey } from '@element-plus/form'
 
-// TODOS: replace these interface definition with actual ElForm interface
-interface ElForm {
-  disabled: boolean
-}
+import type { ElFormContext, ElFormItemContext } from '@element-plus/form'
+
 
 type ValueType = boolean | string | number;
 
@@ -63,6 +65,7 @@ interface ISwitchProps {
   name: string
   validateEvent: boolean
   id: string
+  loading:boolean
 }
 
 export default defineComponent({
@@ -124,15 +127,17 @@ export default defineComponent({
       type: Boolean,
       default: true,
     },
-    id: {
-      type: String,
-      default: '',
+    id: String,
+    loading:{
+      type: Boolean,
+      default: false,
     },
   },
   emits: ['update:modelValue', 'change', 'input'],
   setup(props: ISwitchProps, ctx) {
-    const elForm = inject<ElForm>('elForm', {} as any)
-    const coreWidth = ref(props.width)
+    const elForm = inject(elFormKey, {} as ElFormContext)
+    const elFormItem = inject(elFormItemKey, {} as ElFormItemContext)
+
     const isModelValue = ref(props.modelValue !== false)
     const input = ref(null)
     const core = ref(null)
@@ -167,13 +172,12 @@ export default defineComponent({
       }
 
       if (props.validateEvent) {
-        // TODO: should dispatch event to parent component <el-form-item>;
-        // dispatch('ElFormItem', 'el.form.change', [this.value]);
+        elFormItem.formItemMitt?.emit('el.form.change', [actualValue.value])
       }
     })
 
     const switchDisabled = computed((): boolean => {
-      return props.disabled || (elForm || {}).disabled
+      return props.disabled || props.loading ||(elForm || {}).disabled
     })
 
     const handleChange = (): void => {
@@ -195,11 +199,10 @@ export default defineComponent({
       const coreEl = core.value
       coreEl.style.borderColor = newColor
       coreEl.style.backgroundColor = newColor
+      coreEl.children[0].style.color = newColor
     }
 
     onMounted(() => {
-      coreWidth.value = coreWidth.value || 40
-
       if (props.activeValue || props.inactiveValue) {
         setBackgroundColor()
       }
@@ -210,7 +213,6 @@ export default defineComponent({
     return {
       input,
       core,
-      coreWidth,
       switchDisabled,
       checked,
       handleChange,
@@ -219,6 +221,3 @@ export default defineComponent({
   },
 })
 </script>
-<style scoped>
-</style>
-

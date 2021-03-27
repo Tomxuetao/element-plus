@@ -11,7 +11,7 @@
         <span v-if="title || $slots.title" class="el-alert__title" :class="[ isBoldTitle ]">
           <slot name="title">{{ title }}</slot>
         </span>
-        <p class="el-alert__description">
+        <p v-if="$slots.default || !!description" class="el-alert__description">
           <slot>
             {{ description }}
           </slot>
@@ -68,7 +68,7 @@ export default defineComponent({
       validator: (value: string): boolean => ['light', 'dark'].indexOf(value) > -1,
     },
   },
-  emits: ['click'],
+  emits: ['close'],
   setup(props, ctx) {
     // state
     const visible = ref(true)
@@ -82,7 +82,7 @@ export default defineComponent({
     // methods
     const close = evt => {
       visible.value = false
-      ctx.emit('click', evt)
+      ctx.emit('close', evt)
     }
 
     return {

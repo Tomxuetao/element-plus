@@ -1,6 +1,7 @@
-import Picker from '@element-plus/time-picker/src/common/picker.vue'
+import { CommonPicker } from '@element-plus/time-picker'
 import { mount } from '@vue/test-utils'
 import dayjs from 'dayjs'
+import 'dayjs/locale/zh-cn'
 import { nextTick } from 'vue'
 import DatePicker from '../src/date-picker'
 
@@ -12,12 +13,7 @@ const _mount = (template: string, data = () => ({}), otherObj?) => mount({
   data,
   ...otherObj,
 }, {
-  global: {
-    provide: {
-      elForm: {},
-      elFormItem: {},
-    },
-  },
+  attachTo: 'body',
 })
 
 afterEach(() => {
@@ -26,15 +22,27 @@ afterEach(() => {
 
 
 describe('DatePicker', () => {
-  it('create', async () => {
+  it('create & custom class & style', async () => {
+    const popperClassName = 'popper-class-test'
+    const customClassName = 'custom-class-test'
     const wrapper = _mount(`<el-date-picker
         :readonly="true"
         placeholder='test_'
         format='HH-mm-ss'
-    />`)
+        :style="{color:'red'}"
+        :class="customClassName"
+        :popperClass="popperClassName"
+    />`, () => ({ popperClassName, customClassName }))
     const input = wrapper.find('input')
     expect(input.attributes('placeholder')).toBe('test_')
     expect(input.attributes('readonly')).not.toBeUndefined()
+    const outterInput = wrapper.find('.el-input')
+    expect(outterInput.classes()).toContain(customClassName)
+    expect(outterInput.attributes().style).toBeDefined()
+    input.trigger('blur')
+    input.trigger('focus')
+    await nextTick()
+    expect(document.querySelector('.el-picker__popper').classList.contains(popperClassName)).toBe(true)
   })
 
   it('select date', async () => {
@@ -87,10 +95,10 @@ describe('DatePicker', () => {
     expect(vm.value.getHours()).toBe(12)
     expect(vm.value.getMinutes()).toBe(0)
     expect(vm.value.getSeconds()).toBe(1)
-    const picker = wrapper.findComponent(Picker);
+    const picker = wrapper.findComponent(CommonPicker);
     (picker.vm as any).showClose = true
     await nextTick();
-    (picker.element.querySelector('.el-icon-circle-close') as HTMLElement).click()
+    (document.querySelector('.el-icon-circle-close') as HTMLElement).click()
     expect(vm.value).toBeNull()
   })
 
@@ -348,6 +356,30 @@ describe('WeekPicker', () => {
     await nextTick()
     expect(numberOfHighlightRows()).toBe(0)
   })
+
+  ;[
+    { locale: 'zh-cn', name: 'Monday', value: 1 },
+    { locale: 'en', name: 'Sunday', value: 0 },
+  ].forEach(loObj => {
+    it(`emit first day of the week, ${loObj.locale} locale, ${loObj.name}`, async () => {
+      dayjs.locale(loObj.locale)
+      const wrapper = _mount(`<el-date-picker
+      type='week'
+      v-model="value"
+    />`, () => ({ value: '' }))
+      const input = wrapper.find('input')
+      input.trigger('blur')
+      input.trigger('focus')
+      await nextTick();
+      // click Wednesday
+      (document.querySelectorAll('.el-date-table__row ~ .el-date-table__row td')[3] as HTMLElement).click()
+      await nextTick()
+      const vm = wrapper.vm as any
+      expect(vm.value).not.toBeNull()
+      expect(+dayjs(vm.value)).toBe(+dayjs(vm.value).startOf('week'))
+      expect(dayjs(vm.value).day()).toBe(loObj.value) // Sunday or Monday
+    })
+  })
 })
 
 describe('DatePicker dates', () => {
@@ -443,6 +475,43 @@ describe('DateRangePicker', () => {
     expect(vm.value[0].getTime() < vm.value[1].getTime()).toBeTruthy()
   })
 
+  it('range, start-date and end-date', async () => {
+    _mount(`<el-date-picker
+      type='daterange'
+      v-model="value"
+    />`, () => ({ value: '' }))
+
+    const table = document.querySelector('.el-date-table')
+    const availableTds = (table as HTMLTableElement).querySelectorAll('td.available');
+
+    (availableTds[0] as HTMLElement).click()
+    await nextTick();
+    (availableTds[1] as HTMLElement).click()
+    await nextTick()
+
+    expect(availableTds[0].classList.contains('in-range')).toBeTruthy()
+    expect(availableTds[0].classList.contains('start-date')).toBeTruthy()
+    expect(availableTds[1].classList.contains('in-range')).toBeTruthy()
+    expect(availableTds[1].classList.contains('end-date')).toBeTruthy();
+
+    (availableTds[1] as HTMLElement).click()
+    await nextTick();
+    (availableTds[0] as HTMLElement).click()
+    await nextTick()
+
+    expect(availableTds[0].classList.contains('in-range')).toBeTruthy()
+    expect(availableTds[0].classList.contains('start-date')).toBeTruthy()
+    expect(availableTds[1].classList.contains('in-range')).toBeTruthy()
+    expect(availableTds[1].classList.contains('end-date')).toBeTruthy()
+
+    const startDate = document.querySelectorAll('.start-date')
+    const endDate = document.querySelectorAll('.end-date')
+    const inRangeDate = document.querySelectorAll('.in-range')
+    expect(startDate.length).toBe(1)
+    expect(endDate.length).toBe(1)
+    expect(inRangeDate.length).toBe(2)
+  })
+
   it('unlink:true', async () => {
     const wrapper = _mount(`<el-date-picker
       type='daterange'
@@ -529,6 +598,44 @@ describe('MonthRange', () => {
     await nextTick()
     expect(vm.value[0].getTime() < vm.value[1].getTime()).toBeTruthy()
   })
+
+  it('range, start-date and end-date', async () => {
+    _mount(`<el-date-picker
+      type='monthrange'
+      v-model="value"
+    />`, () => ({ value: '' }))
+
+    const table = document.querySelector('.el-month-table')
+    const tds = (table as HTMLTableElement).querySelectorAll('td');
+
+    (tds[0] as HTMLElement).click()
+    await nextTick();
+    (tds[1] as HTMLElement).click()
+    await nextTick()
+
+    expect(tds[0].classList.contains('in-range')).toBeTruthy()
+    expect(tds[0].classList.contains('start-date')).toBeTruthy()
+    expect(tds[1].classList.contains('in-range')).toBeTruthy()
+    expect(tds[1].classList.contains('end-date')).toBeTruthy();
+
+    (tds[1] as HTMLElement).click()
+    await nextTick();
+    (tds[0] as HTMLElement).click()
+    await nextTick()
+
+    expect(tds[0].classList.contains('in-range')).toBeTruthy()
+    expect(tds[0].classList.contains('start-date')).toBeTruthy()
+    expect(tds[1].classList.contains('in-range')).toBeTruthy()
+    expect(tds[1].classList.contains('end-date')).toBeTruthy()
+
+    const startDate = document.querySelectorAll('.start-date')
+    const endDate = document.querySelectorAll('.end-date')
+    const inRangeDate = document.querySelectorAll('.in-range')
+    expect(startDate.length).toBe(1)
+    expect(endDate.length).toBe(1)
+    expect(inRangeDate.length).toBe(2)
+  })
+
 
   it('type:monthrange unlink:true', async () => {
     const wrapper = _mount(`<el-date-picker

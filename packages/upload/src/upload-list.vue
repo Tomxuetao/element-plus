@@ -9,8 +9,8 @@
     name="el-list"
   >
     <li
-      v-for="(file, idx) in files"
-      :key="idx"
+      v-for="file in files"
+      :key="file"
       :class="['el-upload-list__item', 'is-' + file.status, focusing ? 'focusing' : '']"
       tabindex="0"
       @keydown.delete="!disabled && handleRemove($event, file)"
@@ -72,7 +72,7 @@ import { defineComponent, ref } from 'vue'
 import { NOOP } from '@vue/shared'
 
 import { t } from '@element-plus/locale'
-import { ElProgress } from '@element-plus/progress'
+import ElProgress from '@element-plus/progress'
 
 import type { PropType } from 'vue'
 

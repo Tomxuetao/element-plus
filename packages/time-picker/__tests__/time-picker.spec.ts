@@ -1,6 +1,8 @@
 import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import TimePicker from '../src/time-picker'
+import { triggerEvent } from '@element-plus/test-utils'
+import dayjs from 'dayjs'
 
 const _mount = (template: string, data, otherObj?) => mount({
   components: {
@@ -10,12 +12,7 @@ const _mount = (template: string, data, otherObj?) => mount({
   data,
   ...otherObj,
 }, {
-  global: {
-    provide: {
-      elForm: {},
-      elFormItem: {},
-    },
-  },
+  attachTo: 'body',
 })
 
 const makeRange = (start, end) => {
@@ -37,21 +34,27 @@ afterEach(() => {
 })
 
 describe('TimePicker', () => {
-  it('create', async () => {
+  it('create & custom class & style', async () => {
     const wrapper = _mount(`<el-time-picker
     :placeholder="placeholder"
     :readonly="readonly"
+    :style="{color:'red'}"
+    class="customClass"
   />`, () => ({ placeholder: 'test_',
       readonly: true }))
     const input = wrapper.find('input')
     expect(input.attributes('placeholder')).toBe('test_')
     expect(input.attributes('readonly')).not.toBeUndefined()
+    const outterInput = wrapper.find('.el-input')
+    expect(outterInput.classes()).toContain('customClass')
+    expect(outterInput.attributes().style).toBeDefined()
   })
 
-  it('set format && default value && set AM/PM spinner', async () => {
+  it('set format && default value && set AM/PM spinner && no $attr to panel', async () => {
     const wrapper = _mount(`<el-time-picker
         :format="format"
         v-model="value"
+        class="customClass"
       />`, () => ({ format: 'hh-mm:ss A',
       value: new Date(2016, 9, 10, 18, 40) }))
     await nextTick()
@@ -71,6 +74,8 @@ describe('TimePicker', () => {
     expect(times[0].textContent).toBe('06 PM')
     expect(times[1].textContent).toBe('40') // default value
     expect(times[2].textContent).toBe('00')
+    const panel = document.querySelector('.el-time-panel') as any
+    expect(panel.classList).not.toContain('customClass')
   })
 
   it('select time', async () => {
@@ -338,6 +343,29 @@ describe('TimePicker(range)', () => {
     await nextTick()
     const NextRightEndbledHours = getSpinnerTextAsArray(rightHoursEl, ':not(.disabled)')
     expect(NextRightEndbledHours).toEqual([ 12, 13, 14, 15, 16 ])
+  })
+
+  it('arrow key', async () => {
+    const wrapper = _mount(`<el-time-picker
+        v-model="value"
+        format="YYYY-MM-DD HH:mm:ss"
+      />`, () => ({ value: new Date(2016, 9, 10, 18, 40) }))
+
+    const input = wrapper.find('input')
+    input.trigger('blur')
+    input.trigger('focus')
+    await nextTick()
+    const initValue = input.element.value
+    triggerEvent(input.element, 'keydown', 'ArrowDown')
+    await nextTick()
+    const addOneHour = input.element.value
+    triggerEvent(input.element, 'keydown', 'ArrowRight')
+    await nextTick()
+    triggerEvent(input.element, 'keydown', 'ArrowDown')
+    await nextTick()
+    const addOneHourOneMinute = input.element.value
+    expect(dayjs(initValue).diff(addOneHour, 'minute')).toEqual(-60)
+    expect(dayjs(initValue).diff(addOneHourOneMinute, 'minute')).toEqual(-61)
   })
 })
 

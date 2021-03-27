@@ -1,12 +1,13 @@
 import { App } from 'vue'
+import type { SFCWithInstall } from '@element-plus/utils/types'
 import Select from './src/select.vue'
-import OptionGroup from './src/option-group.vue'
 import Option from './src/option.vue'
 
-export default (app: App): void => {
+Select.install = (app: App): void => {
   app.component(Select.name, Select)
-  app.component(OptionGroup.name, OptionGroup)
-  app.component(Option.name, Option)
 }
 
-export const ElSelect = Select
+const _Select: SFCWithInstall<typeof Select> = Select
+
+export { Option }
+export default _Select

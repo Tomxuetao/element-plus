@@ -1,10 +1,3 @@
-import mitt from 'mitt'
-import { UPDATE_MODEL_EVENT } from '@element-plus/utils/constants'
-import { t } from '@element-plus/locale'
-import isServer from '@element-plus/utils/isServer'
-import scrollIntoView from '@element-plus/utils/scroll-into-view'
-import { debounce as lodashDebounce } from 'lodash'
-import { isKorean } from '@element-plus/utils/isDef'
 import {
   inject,
   nextTick,
@@ -13,20 +6,32 @@ import {
   ref,
   reactive,
 } from 'vue'
+import mitt from 'mitt'
+import { UPDATE_MODEL_EVENT, CHANGE_EVENT } from '@element-plus/utils/constants'
+import { EVENT_CODE } from '@element-plus/utils/aria'
+import { t } from '@element-plus/locale'
+import isServer from '@element-plus/utils/isServer'
+import scrollIntoView from '@element-plus/utils/scroll-into-view'
+import lodashDebounce from 'lodash/debounce'
+import { isKorean } from '@element-plus/utils/isDef'
 import {
   getValueByPath,
   isIE,
   isEdge,
+  useGlobalConfig,
 } from '@element-plus/utils/util'
+import { elFormKey, elFormItemKey } from '@element-plus/form'
 import isEqual from 'lodash/isEqual'
+import { isObject, toRawType } from '@vue/shared'
 
-const ELEMENT = { size: 'medium' }
+import type { ElFormContext, ElFormItemContext } from '@element-plus/form'
+import { SelectOptionProxy } from './token'
 
 export function useSelectStates(props) {
   const selectEmitter = mitt()
   return reactive({
-    options: [],
-    cachedOptions: [],
+    options: new Map(),
+    cachedOptions: new Map(),
     createdLabel: null,
     createdSelected: false,
     selected: props.multiple ? [] : {} as any,
@@ -54,6 +59,7 @@ export function useSelectStates(props) {
 type States = ReturnType<typeof useSelectStates>
 
 export const useSelect = (props, states: States, ctx) => {
+  const ELEMENT = useGlobalConfig()
   // template refs
   const reference = ref(null)
   const input = ref(null)
@@ -64,15 +70,12 @@ export const useSelect = (props, states: States, ctx) => {
   const hoverOption = ref(-1)
 
   // inject
-  const elForm = inject<any>('elForm', {})
-  const elFormItem = inject<any>('elFormItem', {})
-
-  // computed
-  const _elFormItemSize = computed(() => (elFormItem || {}).elFormItemSize)
+  const elForm = inject(elFormKey, {} as ElFormContext)
+  const elFormItem = inject(elFormItemKey, {} as ElFormItemContext)
 
   const readonly = computed(() => !props.filterable || props.multiple || (!isIE() && !isEdge() && !states.visible))
 
-  const selectDisabled = computed(() => props.disabled || (elForm || {}).disabled)
+  const selectDisabled = computed(() => props.disabled || elForm.disabled)
 
   const showClose = computed(() => {
     const hasValue = props.multiple
@@ -94,19 +97,23 @@ export const useSelect = (props, states: States, ctx) => {
     if (props.loading) {
       return props.loadingText || t('el.select.loading')
     } else {
-      if (props.remote && states.query === '' && states.options.length === 0) return false
-      if (props.filterable && states.query && states.options.length > 0 && states.filteredOptionsCount === 0) {
+      if (props.remote && states.query === '' && states.options.size === 0) return false
+      if (props.filterable && states.query && states.options.size > 0 && states.filteredOptionsCount === 0) {
         return props.noMatchText || t('el.select.noMatch')
       }
-      if (states.options.length === 0) {
+      if (states.options.size === 0) {
         return props.noDataText || t('el.select.noData')
       }
     }
     return null
   })
 
+  const optionsArray = computed(() => Array.from(states.options.values()))
+
+  const cachedOptionsArray = computed(() => Array.from(states.cachedOptions.values()))
+
   const showNewOption = computed(() => {
-    const hasExistingOption = states.options.filter(option => {
+    const hasExistingOption = optionsArray.value.filter(option => {
       return !option.created
     }).some(option => {
       return option.currentLabel === states.query
@@ -114,8 +121,7 @@ export const useSelect = (props, states: States, ctx) => {
     return props.filterable && props.allowCreate && states.query !== '' && !hasExistingOption
   })
 
-  // TODO: ELEMENT
-  const selectSize = computed(() => props.size || _elFormItemSize.value || (ELEMENT || {}).size)
+  const selectSize = computed(() => props.size || elFormItem.size || ELEMENT.size)
 
   const collapseTagSize = computed(() => ['small', 'mini'].indexOf(selectSize.value) > -1 ? 'mini' : 'small')
 
@@ -150,13 +156,15 @@ export const useSelect = (props, states: States, ctx) => {
       states.inputLength = 20
     }
     if (!isEqual(val, oldVal)) {
-      elFormItem?.changeEvent?.(val)
+      elFormItem.formItemMitt?.emit('el.form.change', val)
     }
+  }, {
+    flush: 'post',
+    deep: true,
   })
 
   watch(() => states.visible, val => {
     if (!val) {
-      doDestroy()
       input.value && input.value.blur()
       states.query = ''
       states.previousQuery = null
@@ -188,46 +196,55 @@ export const useSelect = (props, states: States, ctx) => {
       popper.value?.update?.()
 
       if (props.filterable) {
+        states.filteredOptionsCount = states.optionsCount
         states.query = props.remote ? '' : states.selectedLabel
-        handleQueryChange(states.query)
         if (props.multiple) {
           input.value.focus()
         } else {
-          if (!props.remote) {
-            states.selectEmitter.emit('elOptionQueryChange', '')
-            states.selectEmitter.emit('elOptionGroupQueryChange')
-          }
-
           if (states.selectedLabel) {
             states.currentPlaceholder = states.selectedLabel
             states.selectedLabel = ''
           }
+        }
+        if (!props.multiple && !props.remote) {
+          states.selectEmitter.emit('elOptionQueryChange', '')
+          states.selectEmitter.emit('elOptionGroupQueryChange')
+        } else {
+          handleQueryChange(states.query)
         }
       }
     }
     ctx.emit('visible-change', val)
   })
 
-  watch(() => states.options, () => {
-    if (isServer) return
-    popper.value?.update?.()
-    if (props.multiple) {
-      resetInputHeight()
-    }
-    const inputs = selectWrapper.value.querySelectorAll('input')
-    if ([].indexOf.call(inputs, document.activeElement) === -1) {
-      setSelected()
-    }
-    if (props.defaultFirstOption && (props.filterable || props.remote) && states.filteredOptionsCount) {
-      checkDefaultFirstOption()
-    }
-  })
+  watch(
+    // fix `Array.prototype.push/splice/..` cannot trigger non-deep watcher
+    // https://github.com/vuejs/vue-next/issues/2116
+    () => states.options.entries(),
+    () => {
+      if (isServer) return
+      popper.value?.update?.()
+      if (props.multiple) {
+        resetInputHeight()
+      }
+      const inputs = selectWrapper.value?.querySelectorAll('input') || []
+      if ([].indexOf.call(inputs, document.activeElement) === -1) {
+        setSelected()
+      }
+      if (props.defaultFirstOption && (props.filterable || props.remote) && states.filteredOptionsCount) {
+        checkDefaultFirstOption()
+      }
+    },
+    {
+      flush: 'post',
+    },
+  )
 
   watch(() => states.hoverIndex, val => {
     if (typeof val === 'number' && val > -1) {
-      hoverOption.value = states.options[val] || {}
+      hoverOption.value = optionsArray.value[val] || {}
     }
-    states.options.forEach(option => {
+    optionsArray.value.forEach(option => {
       option.hover = hoverOption.value === option
     })
   })
@@ -293,7 +310,7 @@ export const useSelect = (props, states: States, ctx) => {
 
   const managePlaceholder = () => {
     if (states.currentPlaceholder !== '') {
-      states.currentPlaceholder = input.value ? '' : states.cachedPlaceHolder
+      states.currentPlaceholder = input.value.value ? '' : states.cachedPlaceHolder
     }
   }
 
@@ -301,16 +318,16 @@ export const useSelect = (props, states: States, ctx) => {
     states.hoverIndex = -1
     // highlight the created option
     let hasCreated = false
-    for (let i = states.options.length - 1; i >= 0; i--) {
-      if (states.options[i].created) {
+    for (let i = states.options.size - 1; i >= 0; i--) {
+      if (optionsArray.value[i].created) {
         hasCreated = true
         states.hoverIndex = i
         break
       }
     }
     if (hasCreated) return
-    for (let i = 0; i !== states.options.length; ++i) {
-      const option = states.options[i]
+    for (let i = 0; i !== states.options.size; ++i) {
+      const option = optionsArray.value[i]
       if (states.query) {
         // highlight first options that passes the filter
         if (!option.disabled && !option.groupDisabled && option.visible) {
@@ -355,27 +372,28 @@ export const useSelect = (props, states: States, ctx) => {
 
   const getOption = value => {
     let option
-    const isObject = Object.prototype.toString.call(props.modelValue).toLowerCase() === '[object object]'
-    const isNull = Object.prototype.toString.call(props.modelValue).toLowerCase() === '[object null]'
-    const isUndefined = Object.prototype.toString.call(props.modelValue).toLowerCase() === '[object undefined]'
+    const isObjectValue = toRawType(value).toLowerCase() === 'object'
+    const isNull = toRawType(value).toLowerCase() === 'null'
+    const isUndefined = toRawType(value).toLowerCase() === 'undefined'
 
-    for (let i = states.cachedOptions.length - 1; i >= 0; i--) {
-      const cachedOption = states.cachedOptions[i]
-      const isEqual = isObject
-        ? getValueByPath(cachedOption.value, props.valueKey) === getValueByPath(props.modelValue, props.valueKey)
+    for (let i = states.cachedOptions.size - 1; i >= 0; i--) {
+      const cachedOption = cachedOptionsArray.value[i]
+      const isEqualValue = isObjectValue
+        ? getValueByPath(cachedOption.value, props.valueKey) === getValueByPath(value, props.valueKey)
         : cachedOption.value === value
-      if (isEqual) {
+      if (isEqualValue) {
         option = {
           value,
           currentLabel: cachedOption.currentLabel,
+          isDisabled: cachedOption.isDisabled,
         }
         break
       }
     }
     if (option) return option
-    const label = (!isObject && !isNull && !isUndefined) ? value : ''
+    const label = (!isObjectValue && !isNull && !isUndefined) ? value : ''
     const newOption = {
-      value: value,
+      value,
       currentLabel: label,
     }
     if (props.multiple) {
@@ -387,10 +405,10 @@ export const useSelect = (props, states: States, ctx) => {
   const resetHoverIndex = () => {
     setTimeout(() => {
       if (!props.multiple) {
-        states.hoverIndex = states.options.indexOf(states.selected)
+        states.hoverIndex = optionsArray.value.indexOf(states.selected)
       } else {
         if (states.selected.length > 0) {
-          states.hoverIndex = Math.min.apply(null, states.selected.map(item => states.options.indexOf(item)))
+          states.hoverIndex = Math.min.apply(null, states.selected.map(item => optionsArray.value.indexOf(item)))
         } else {
           states.hoverIndex = -1
         }
@@ -400,6 +418,7 @@ export const useSelect = (props, states: States, ctx) => {
 
   const handleResize = () => {
     resetInputWidth()
+    popper.value?.update?.()
     if (props.multiple) resetInputHeight()
   }
 
@@ -424,7 +443,7 @@ export const useSelect = (props, states: States, ctx) => {
 
   const emitChange = val => {
     if (!isEqual(props.modelValue, val)) {
-      ctx.emit('change', val)
+      ctx.emit(CHANGE_EVENT, val)
     }
   }
 
@@ -434,6 +453,10 @@ export const useSelect = (props, states: States, ctx) => {
       value.pop()
       ctx.emit(UPDATE_MODEL_EVENT, value)
       emitChange(value)
+    }
+
+    if (e.target.value.length === 1 && props.modelValue.length === 0) {
+      states.currentPlaceholder = states.cachedPlaceHolder
     }
   }
 
@@ -452,6 +475,11 @@ export const useSelect = (props, states: States, ctx) => {
   const deleteSelected = event => {
     event.stopPropagation()
     const value = props.multiple ? [] : ''
+    if (typeof value !== 'string') {
+      for (const item of states.selected) {
+        if (item.isDisabled) value.push(item.value)
+      }
+    }
     ctx.emit(UPDATE_MODEL_EVENT, value)
     emitChange(value)
     states.visible = false
@@ -489,21 +517,18 @@ export const useSelect = (props, states: States, ctx) => {
   }
 
   const getValueIndex = (arr = [], value) => {
-    const isObject = Object.prototype.toString.call(value).toLowerCase() === '[object object]'
-    if (!isObject) {
-      return arr.indexOf(value)
-    } else {
-      const valueKey = props.valueKey
-      let index = -1
-      arr.some((item, i) => {
-        if (getValueByPath(item, valueKey) === getValueByPath(value, valueKey)) {
-          index = i
-          return true
-        }
-        return false
-      })
-      return index
-    }
+    if (!isObject(value)) return arr.indexOf(value)
+
+    const valueKey = props.valueKey
+    let index = -1
+    arr.some((item, i) => {
+      if (getValueByPath(item, valueKey) === getValueByPath(value, valueKey)) {
+        index = i
+        return true
+      }
+      return false
+    })
+    return index
   }
 
   const setSoftFocus = () => {
@@ -515,27 +540,40 @@ export const useSelect = (props, states: States, ctx) => {
   }
 
   const scrollToOption = option => {
-    const target = Array.isArray(option) ? option[0]?.$el : option.$el
+    const targetOption = Array.isArray(option) ? option[0] : option
+    let target = null
+
+    if(targetOption?.value){
+      const options = optionsArray.value.filter(item => item.value === targetOption.value)
+      if (options.length > 0) {
+        target =  options[0].$el
+      }
+    }
+
     if (popper.value && target) {
-      const menu = popper.value?.$el?.querySelector?.('.el-select-dropdown__wrap')
+      const menu = popper.value?.popperRef?.querySelector?.('.el-select-dropdown__wrap')
       if (menu) {
         scrollIntoView(menu, target)
       }
     }
-    // TODO: handleScroll
-    // scrollbar.value?.handleScroll()
+    scrollbar.value?.handleScroll()
   }
 
-  const onOptionDestroy = index => {
-    if (index > -1) {
-      states.optionsCount--
-      states.filteredOptionsCount--
-      states.options.splice(index, 1)
-    }
+  const onOptionCreate = (vm: SelectOptionProxy) => {
+    states.optionsCount++
+    states.filteredOptionsCount++
+    states.options.set(vm.value, vm)
+    states.cachedOptions.set(vm.value, vm)
   }
 
-  const resetInputState = e => {
-    if (e.keyCode !== 8) toggleLastOptionHitState(false)
+  const onOptionDestroy = key => {
+    states.optionsCount--
+    states.filteredOptionsCount--
+    states.options.delete(key)
+  }
+
+  const resetInputState = (e: KeyboardEvent) => {
+    if (e.code !== EVENT_CODE.backspace) toggleLastOptionHitState(false)
     states.inputLength = input.value.length * 15 + 20
     resetInputHeight()
   }
@@ -588,7 +626,7 @@ export const useSelect = (props, states: States, ctx) => {
     reference.value.blur()
   }
 
-  const handleBlur = event => {
+  const handleBlur = (event: Event) => {
     // https://github.com/ElemeFE/element/pull/10822
     nextTick(() => {
       if (states.isSilentBlur) {
@@ -600,12 +638,8 @@ export const useSelect = (props, states: States, ctx) => {
     states.softFocus = false
   }
 
-  const handleClearClick = event => {
+  const handleClearClick = (event: Event) => {
     deleteSelected(event)
-  }
-
-  const doDestroy = () => {
-    popper.value?.doDestroy?.()
   }
 
   const handleClose = () => {
@@ -630,42 +664,40 @@ export const useSelect = (props, states: States, ctx) => {
     if (!states.visible) {
       toggleMenu()
     } else {
-      if (states.options[states.hoverIndex]) {
-        handleOptionSelect(states.options[states.hoverIndex], undefined)
+      if (optionsArray.value[states.hoverIndex]) {
+        handleOptionSelect(optionsArray.value[states.hoverIndex], undefined)
       }
     }
   }
 
   const getValueKey = item => {
-    if (Object.prototype.toString.call(item.value).toLowerCase() !== '[object object]') {
-      return item.value
-    } else {
-      return getValueByPath(item.value, props.valueKey)
-    }
+    return isObject(item.value)
+      ? getValueByPath(item.value, props.valueKey)
+      : item.value
   }
 
-  const optionsAllDisabled = computed(() => states.options.filter(option => option.visible).every(option => option.disabled))
+  const optionsAllDisabled = computed(() => optionsArray.value.filter(option => option.visible).every(option => option.disabled))
 
   const navigateOptions = direction => {
     if (!states.visible) {
       states.visible = true
       return
     }
-    if (states.options.length === 0 || states.filteredOptionsCount === 0) return
+    if (states.options.size === 0 || states.filteredOptionsCount === 0) return
 
     if (!optionsAllDisabled.value) {
       if (direction === 'next') {
         states.hoverIndex++
-        if (states.hoverIndex === states.options.length) {
+        if (states.hoverIndex === states.options.size) {
           states.hoverIndex = 0
         }
       } else if (direction === 'prev') {
         states.hoverIndex--
         if (states.hoverIndex < 0) {
-          states.hoverIndex = states.options.length - 1
+          states.hoverIndex = states.options.size - 1
         }
       }
-      const option = states.options[states.hoverIndex]
+      const option = optionsArray.value[states.hoverIndex]
       if (option.disabled === true ||
         option.groupDisabled === true ||
         !option.visible) {
@@ -676,6 +708,7 @@ export const useSelect = (props, states: States, ctx) => {
   }
 
   return {
+    optionsArray,
     selectSize,
     handleResize,
     debouncedOnInputChange,
@@ -698,13 +731,13 @@ export const useSelect = (props, states: States, ctx) => {
     toggleLastOptionHitState,
     resetInputState,
     handleComposition,
+    onOptionCreate,
     onOptionDestroy,
     handleMenuEnter,
     handleFocus,
     blur,
     handleBlur,
     handleClearClick,
-    doDestroy,
     handleClose,
     toggleMenu,
     selectOption,

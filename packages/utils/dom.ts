@@ -23,9 +23,10 @@ export const off = function(
   element: HTMLElement | Document | Window,
   event: string,
   handler: EventListenerOrEventListenerObject,
+  useCapture = false,
 ): void {
   if (element && event && handler) {
-    element.removeEventListener(event, handler, false)
+    element.removeEventListener(event, handler, useCapture)
   }
 }
 
@@ -233,4 +234,5 @@ export const getOffsetTop = (el: HTMLElement) => {
 export const getOffsetTopDistance = (el: HTMLElement, containerEl: HTMLElement) => {
   return Math.abs(getOffsetTop(el) - getOffsetTop(containerEl))
 }
+
 export const stop = (e: Event) => e.stopPropagation()

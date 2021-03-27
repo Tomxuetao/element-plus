@@ -1,13 +1,6 @@
 ## Tema personalizado
 Element Plus utiliza la metodología BEM en CSS con la finalidad de que puedas sobrescribir los estilos fácilmente. Pero, si necesita remplazar estilos a gran escala, por ejemplo, cambiar el color del tema de azul a naranja o verde, quizás reemplazarlos uno a uno no sea lo más adecuado, para ello hay 4 maneras de modificar los estilos.
 
-### Theme Roller
-Use [Online Theme Roller](./#/es/theme) to customize all Design Tokens of global variables and components，and preview the new theme in real-time.and it can generate a complete style package based on the new theme for you to download directly (to import new style files in your project, please refer to the 'Import custom theme' or part of this section).
-
-Also, use [Theme Roller Chrome Extension](https://chrome.google.com/webstore/detail/element-theme-roller/lifkjlojflekabbmlddfccdkphlelmim)，to customize theme and preview in real-time on any website developed by Element.
-
-<img src="https://shadow.elemecdn.com/app/sns-client/element-theme-editor2.e16c6a01-806d-11e9-bc23-21435c54c509.png" style="width: 100%;margin: 30px auto 0;display: block;">
-
 ### Cambiando el color del tema
 Si lo que se busca es cambiar el color del tema de Element, se recomienda utilizar el [sitio de visualización de temas](https://elementui.github.io/theme-chalk-preview/#/en-US). Element Plus utiliza un color azul brillante y amigable como tema principal. Al cambiarlo, puede hacer que Element Plus este más conectado visualmente a proyectos específicos.
 
@@ -109,11 +102,11 @@ et
 Importing your own theme is just like importing the default theme, only this time you import the file built from "Online Theme Roller" or "CLI tool":
 
 ```javascript
+import { createApp } from 'vue'
 import '../theme/index.css'
-import ElementUI from 'element-plus'
-import Vue from 'vue'
+import ElementPlus from 'element-plus'
 
-Vue.use(ElementUI)
+createApp(App).use(ElementPlus)
 ```
 
 #### <strong>Importar un tema de componente bajo demanda</strong>

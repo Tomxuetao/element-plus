@@ -112,13 +112,40 @@
 ```
 :::
 
+### 加载中
+
+:::demo 设置`loading`属性，接受一个`Boolean`，设置`true`即加载中状态。
+
+
+```html
+<el-switch
+  v-model="value1"
+  loading>
+</el-switch>
+<el-switch
+  v-model="value2"
+  loading>
+</el-switch>
+<script>
+  export default {
+    data() {
+      return {
+        value1: true,
+        value2: false
+      }
+    }
+  };
+</script>
+```
+:::
 
 ### Attributes
 
 | 参数      | 说明    | 类型      | 可选值       | 默认值   |
 |---------- |-------- |---------- |-------------  |-------- |
-| value / v-model | 绑定值 | boolean / string / number | — | — |
+| value / v-model | 绑定值，必须等于`active-value`或`inactive-value`，默认为`Boolean`类型 | boolean / string / number | — | — |
 | disabled  | 是否禁用    | boolean   | — | false   |
+| loading  | 是否显示加载中    | boolean   | — | false   |
 | width  | switch 的宽度（像素）    | number   | — | 40 |
 | active-icon-class  | switch 打开时所显示图标的类名，设置此项会忽略 `active-text`    | string   | — | — |
 | inactive-icon-class  | switch 关闭时所显示图标的类名，设置此项会忽略 `inactive-text`    | string   | — | — |

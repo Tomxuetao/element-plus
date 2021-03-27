@@ -24,14 +24,15 @@ export function useOption(props, states) {
     if (!select.props.multiple) {
       return isEqual(props.value, select.props.modelValue)
     } else {
-      return contains(select.props.modelValue, props.value)
+      return contains(select.props.modelValue as unknown[], props.value)
     }
   })
 
   const limitReached = computed(() => {
     if (select.props.multiple) {
+      const modelValue = (select.props.modelValue || []) as unknown[]
       return !itemSelected.value &&
-        (select.props.value || []).length >= select.props.multipleLimit &&
+      modelValue.length >= select.props.multipleLimit &&
         select.props.multipleLimit > 0
     } else {
       return false
@@ -52,9 +53,6 @@ export function useOption(props, states) {
 
   const instance = getCurrentInstance()
 
-  select.optionsCount++
-  select.filteredOptionsCount++
-
   const contains = (arr = [], target) => {
     if (!isObject.value) {
       return arr && arr.indexOf(target) > -1
@@ -70,14 +68,14 @@ export function useOption(props, states) {
     if (!isObject.value) {
       return a === b
     } else {
-      const valueKey = select.valueKey
+      const { valueKey } = select.props
       return getValueByPath(a, valueKey) === getValueByPath(b, valueKey)
     }
   }
 
   const hoverItem = () => {
     if (!props.disabled && !selectGroup.disabled) {
-      select.hoverIndex = select.options.indexOf(instance)
+      select.hoverIndex = select.optionsArray.indexOf(instance)
     }
   }
 
@@ -90,11 +88,11 @@ export function useOption(props, states) {
   }
 
   watch(() => currentLabel.value, () => {
-    if (!props.created && !select.remote) select.setSelected()
+    if (!props.created && !select.props.remote) select.setSelected()
   })
 
   watch(() => props.value, (val, oldVal) => {
-    const { remote, valueKey } = select
+    const { remote, valueKey } = select.props
     if (!props.created && !remote) {
       if (valueKey && typeof val === 'object' && typeof oldVal === 'object' && val[valueKey] === oldVal[valueKey]) {
         return
@@ -102,6 +100,10 @@ export function useOption(props, states) {
       select.setSelected()
     }
   })
+
+  watch(() => selectGroup.disabled, () => {
+    states.groupDisabled = selectGroup.disabled
+  }, { immediate: true })
 
   // Emitter
   select.selectEmitter.on(selectEvents.queryChange, queryChange)
