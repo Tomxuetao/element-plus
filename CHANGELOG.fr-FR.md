@@ -1,5 +1,158 @@
 ## Changelog
 
+### 1.0.2-beta.42
+
+*2021-05-09*
+
+#### Bug fixes
+- Fix Rate: remove the confusing this (#1910)
+- Fix Drawer: add modal false div class (#1932)
+- Fix Button: fix incorrect style rule when hovering disabled plain button (#1937)
+- Fix Form: fix validate typing error (#1938)
+- Fix Table: fix table checkbox onChange event unable to be emitted in legacy browser (#1945)
+- Fix Icon: update icon design styles (#1950)
+- Fix Transfer: remove useless button style (#1953)
+- Fix Popover: add additional css in popover (#1956)
+- Fix Switch: fix switch component onMounted condition error (#1966)
+
+#### Chore
+- Chore Notification: Remove magic numbers (#1928)
+- Chore Tag: keep the same with property name (#1940)
+- Chore Pagination: update Pagination documentation with .sync modifier (#1920 #1957)
+- Chore Project: replace unreasonable code (#1963)
+- Chore website: update ad (#1968)
+- Chore ThemeChalk: add missing `!default` modifiers for global variables (#1969)
+
+
+### 1.0.2-beta.41
+
+*2021-04-26*
+
+#### Features
+
+- Progress: indeterminate progress bar (#1832)
+- Descriptions: new component descriptions (#1856)
+- Scrollbar: new component Scrollbar (#1859)
+- Switch: add beforeChange hook (#1878)
+
+#### Bug fixes
+
+- Fix Image fix image Add the dom of the preview picture to the body (#1577)
+- Fix Icon fix icon (#1896)
+- Fix page-header add icon props and slots (#1882)
+- Fix Scrollbar perf behavior of scrollbar (#1869)
+- Fix Button setup props add type (#1879)
+- Fix Upload expose abort method (#1877)
+- Fix Dropdown fix click disabled still trigger (#1865)
+- Fix Virtual-list enhance-virtual-list (#1813)
+- Fix Space string spacer style issue (#1845)
+- Fix Checkbox activeStyle boxShadow error (#1829)
+
+### 1.0.2-beta.40
+
+*2021-04-14*
+
+#### Bug fixes
+
+- Fix table page resize event not monitor (#1790)
+- Fix time-picker added popperRef in picker to Fix issue #1809 (#1812)
+- Fix select fix select with filterable has wrong dropdown options (#1811)
+- Fix table fix bug of table crash under complex data (#1805)
+- Fix alert.scss carousel.scss switch.scss v-enter(vue2) to v-enter(vue3) (#1803)
+- Fix build not generate code hint files when publish-npm (#1802)
+- Fix avatar fix src attributes default value (#1770)
+- Fix talbe null check error (#1807)
+- Fix image-viewer fix image src attribute error #1791 (#1819)
+- Fix date-picker date-picker daterange panel clear value and view not updated (#1816)
+- style(date-picker): date-picker-com conditional judgment (#1823)
+- Fix docs footer links error (#1827)
+- Fix table fix table column rerendered whenever table updates
+- Fix time-picker time picker change event bug (#1828)
+#### Features
+
+- Result: new componet Result (#1818)
+
+#### Chore updares
+
+- style using 'Array.prototype.forEach()' (#1826)
+
+### 1.0.2-beta.39
+
+*2021-04-09*
+#### Bug fixes
+
+- Fix `packages/utils` path issue (#1792)
+
+### 1.0.2-beta.38
+
+*2021-04-08*
+
+- Fix `packages/utils` build issue caused `setConfig` not working (#1788)
+
+### 1.0.2-beta.37
+
+*2021-04-08*
+
+#### Bug fixes
+
+- Fix input prefix-icon-incorrect-height (#1766)
+- Fix select  fix filter method is not called when input first letter (#1711)
+- Fix picker add focus (#1475)
+- Fix time-select input value not changed with v-model bindings (#1725)
+- Fix tooltip component tabindex prop (#1621)
+- Fix select fix type of modelValue incompatible (#1719)
+- Fix utils isIE logic (#1757)
+- Refactor card remove needless div tag (#1732)
+- Fix input add keydown event listener for textarea (#1723)
+- Fix time-picker  update oldValue when visible change (#1635)
+- Fix drawer close button outline issue when focusing (#1727)
+
+### 1.0.2-beta.36
+
+*2021-03-28*
+
+#### Bug fixes
+
+- fix option-group error when groupQueryChange event trigger
+- fix model-value error when Slider rendered
+- fix use-lock-screen hook (#1651)
+- fix modelValue should be deep reactive in multiple mode (#1624)
+- fix not returning resetField & clearValidate methods (#1663)
+- fix bug in render column structure (#1664)
+- fix bug caused by dynamic rendering (#1640) …
+- fix tooltip's export (#1678)
+- fix should reset placeholder after clear (#1679)
+- fix image onload overridden (#1689)
+- fix #1653 (#1665)
+- fix tabindex prop (#1642)
+- fix notification css word break (#1699)
+- fix transition error trigger when fileList is static (#1686 …
+- fix error position of input and tags (#1682)
+- fix incompatible migration (#1671) …
+- fix the current row render flashing when expanding line toggle
+- fix menu component animation bug (#1690)
+- fix style of break word (#1701)
+
+#### Features
+
+- add new feature check-tag (#1696)
+
+#### Chore updates
+
+- docs update label docs of tab-pane (#1646)
+- add web-types.json (#1662)
+- chore: remove an repetitive file in .gitignore (#1673)
+- docs: Update the quickstart.md of zh-cn language (#1698)
+- docs: update on demand import docs (#1672)
+- project/bumping-vue-version (#1702)
+
+### 1.0.2-beta.35
+
+
+*2021-03-15*
+
+- Fix type generator error
+
 ### 1.0.2-beta.34
 
 *2021-03-12*
