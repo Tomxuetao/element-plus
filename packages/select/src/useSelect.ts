@@ -208,11 +208,10 @@ export const useSelect = (props, states: States, ctx) => {
             states.selectedLabel = ''
           }
         }
+        handleQueryChange(states.query)
         if (!props.multiple && !props.remote) {
           states.selectEmitter.emit('elOptionQueryChange', '')
           states.selectEmitter.emit('elOptionGroupQueryChange')
-        } else {
-          handleQueryChange(states.query)
         }
       }
     }
