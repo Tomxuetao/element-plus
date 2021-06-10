@@ -1,4 +1,6 @@
 /* Element Chalk Variables */
+@use "sass:math";
+
 @import "../mixins/config";
 
 // Special comment for theme configurator
@@ -632,6 +634,7 @@ $--popover-padding-large: 18px 20px !default;
 $--popover-title-font-size: 16px !default;
 /// color||Color|0
 $--popover-title-font-color: $--color-text-primary !default;
+$--popover-border-radius: 4px !default;
 
 /* Tooltip
 -------------------------- */
