@@ -19,7 +19,7 @@ import lodashDebounce from 'lodash/debounce'
 import { addResizeListener, removeResizeListener } from '@element-plus/utils/resize-event'
 import { UPDATE_MODEL_EVENT, CHANGE_EVENT } from '@element-plus/utils/constants'
 
-import { t } from '@element-plus/locale'
+import { useLocaleInject } from '@element-plus/hooks'
 import { elFormKey, elFormItemKey } from '@element-plus/form'
 import {
   getValueByPath,
@@ -40,6 +40,7 @@ const MINIMUM_INPUT_WIDTH = 4
 const useSelect = (props: ExtractPropTypes<typeof SelectProps>, emit) => {
 
   // inject
+  const { t } = useLocaleInject()
   const elForm = inject(elFormKey, {} as ElFormContext)
   const elFormItem = inject(elFormItemKey, {} as ElFormItemContext)
   const $ELEMENT = useGlobalConfig()
@@ -71,6 +72,7 @@ const useSelect = (props: ExtractPropTypes<typeof SelectProps>, emit) => {
 
   // data refs
   const selectedIndex = ref(-1)
+  const popperSize = ref(-1)
 
   // DOM & Component refs
   const controlRef = ref(null)
@@ -156,9 +158,9 @@ const useSelect = (props: ExtractPropTypes<typeof SelectProps>, emit) => {
 
   const collapseTagSize = computed(() => selectSize.value)
 
-  const popperSize = computed(() => {
-    return selectRef.value?.getBoundingClientRect?.()?.width || 200
-  })
+  const calculatePopperSize = () => {
+    popperSize.value = selectRef.value?.getBoundingClientRect?.()?.width || 200
+  }
   // const readonly = computed(() => !props.filterable || props.multiple || (!isIE() && !isEdge() && !expanded.value))
 
   const inputWrapperStyle = computed(() => {
@@ -184,13 +186,28 @@ const useSelect = (props: ExtractPropTypes<typeof SelectProps>, emit) => {
   })
 
   const currentPlaceholder = computed(() => {
+    const _placeholder = props.placeholder || t('el.select.placeholder')
     return props.multiple
-      ? props.placeholder
-      : states.selectedLabel || props.placeholder
+      ? _placeholder
+      : states.selectedLabel || _placeholder
   })
 
   // this obtains the actual popper DOM element.
   const popperRef = computed(() => popper.value?.popperRef)
+
+  // the index with current value in options
+  const indexRef = computed<number>(() => {
+    if (props.multiple) {
+      if ((props.modelValue as Array<any>).length > 0) {
+        return filteredOptions.value.findIndex(o => o.value === props.modelValue[0])
+      }
+    } else {
+      if (props.modelValue) {
+        return filteredOptions.value.findIndex(o => o.value === props.modelValue)
+      }
+    }
+    return -1
+  })
 
   // methods
   const focusAndUpdatePopup = () => {
@@ -207,8 +224,8 @@ const useSelect = (props: ExtractPropTypes<typeof SelectProps>, emit) => {
       // if (expanded.value) {
       //   expanded.value = false
       // }
+      if (states.isComposing) states.softFocus = true
       expanded.value = !expanded.value
-      states.softFocus = true
       inputRef.value?.focus?.()
       // }
     }
@@ -329,6 +346,7 @@ const useSelect = (props: ExtractPropTypes<typeof SelectProps>, emit) => {
 
   const handleResize = () => {
     resetInputWidth()
+    calculatePopperSize()
     popper.value?.update?.()
     if (props.multiple) resetInputHeight()
   }
@@ -374,14 +392,9 @@ const useSelect = (props: ExtractPropTypes<typeof SelectProps>, emit) => {
       states.selectedLabel = option.label
       update(option.value)
       expanded.value = false
+      states.isComposing = false
+      states.isSilentBlur = byClick
     }
-    states.isComposing = false
-    states.isSilentBlur = byClick
-    // setSoftFocus()
-    if (expanded.value) return
-    nextTick(() => {
-      // scrollToOption(option)
-    })
   }
 
   const deleteTag = (event: MouseEvent, tag: Option) => {
@@ -409,15 +422,14 @@ const useSelect = (props: ExtractPropTypes<typeof SelectProps>, emit) => {
   }
 
   const handleFocus = (event: FocusEvent) => {
+    const focused = states.isComposing
     states.isComposing = true
     if (!states.softFocus) {
       if (props.automaticDropdown || props.filterable) {
         expanded.value = true
-        // if (props.filterable) {
-        //   states.menuVisibleOnFocus = true
-        // }
       }
-      emit('focus', event)
+      // If already in the focus state, shouldn't trigger event
+      if (!focused) emit('focus', event)
     } else {
       states.softFocus = false
     }
@@ -430,7 +442,6 @@ const useSelect = (props: ExtractPropTypes<typeof SelectProps>, emit) => {
       }
     }
 
-    states.isComposing = false
     states.softFocus = false
 
     // reset input value when blurred
@@ -440,7 +451,6 @@ const useSelect = (props: ExtractPropTypes<typeof SelectProps>, emit) => {
       if (calculatorRef.value) {
         states.calculatedWidth = calculatorRef.value.getBoundingClientRect().width
       }
-
       if (states.isSilentBlur) {
         states.isSilentBlur = false
       } else {
@@ -448,6 +458,7 @@ const useSelect = (props: ExtractPropTypes<typeof SelectProps>, emit) => {
           emit('blur')
         }
       }
+      states.isComposing = false
     })
 
   }
@@ -571,6 +582,45 @@ const useSelect = (props: ExtractPropTypes<typeof SelectProps>, emit) => {
     handleBlur()
   }
 
+  const handleMenuEnter = () => {
+    states.inputValue = states.displayInputValue
+    nextTick(() => {
+      if (~indexRef.value) {
+        scrollToItem(indexRef.value)
+      }
+    })
+  }
+
+  const scrollToItem = (index: number) => {
+    menuRef.value.scrollToItem(index)
+  }
+
+  const initStates = () => {
+    if (props.multiple) {
+      if ((props.modelValue as Array<any>).length > 0) {
+        states.cachedOptions.length = 0;
+        (props.modelValue as Array<any>).map(selected => {
+          const item = filteredOptions.value.find(option => option.value === selected)
+          if (item) {
+            states.cachedOptions.push(item as Option)
+          }
+        })
+      }
+    } else {
+      if (props.modelValue) {
+        const selectedItem = filteredOptions.value.find(o => o.value === props.modelValue)
+        if (selectedItem) {
+          states.selectedLabel = selectedItem.label
+        } else {
+          states.selectedLabel = `${props.modelValue}`
+        }
+      } else {
+        states.selectedLabel = ''
+      }
+    }
+    calculatePopperSize()
+  }
+
   // in order to track these individually, we need to turn them into refs instead of watching the entire
   // reactive object which could cause perf penalty when unnecessary field gets changed the watch method will
   // be invoked.
@@ -585,26 +635,14 @@ const useSelect = (props: ExtractPropTypes<typeof SelectProps>, emit) => {
     }
   })
 
+  watch([() => props.modelValue, () => props.options], () => {
+    initStates()
+  }, {
+    deep: true,
+  })
+
   onMounted(() => {
-    if (props.multiple) {
-      if ((props.modelValue as Array<any>).length > 0) {
-        (props.modelValue as Array<any>).map(selected => {
-          const item = props.options.find(option => option.value === selected)
-          if (item) {
-            states.cachedOptions.push(item as Option)
-          }
-        })
-      }
-    } else {
-      if (props.modelValue) {
-        const selectedItem = props.options.find(o => o.value === props.modelValue)
-
-        if (selectedItem) {
-          states.selectedLabel = selectedItem.label
-        }
-      }
-    }
-
+    initStates()
     addResizeListener(selectRef.value, handleResize)
   })
 
@@ -655,7 +693,9 @@ const useSelect = (props: ExtractPropTypes<typeof SelectProps>, emit) => {
     handleEsc,
     handleFocus,
     handleInputBoxClick,
+    handleMenuEnter,
     toggleMenu,
+    scrollTo: scrollToItem,
     onCompositionUpdate,
     onInput,
     onKeyboardNavigate,
