@@ -1,5 +1,44 @@
 ## Changelog
 
+### 1.0.2-beta.70
+
+*2021-08-05*
+
+#### Bug fixes
+
+- Date-picker color-text has been renamed to text-color (#2835 by @YunYouJun)
+- Cascader revert #2344 to fix not update when options change (#2843 by @SimonaliaChen)
+- Cascader missing cascader-panel css var & add default var for thumb (#2847 by @YunYouJun)
+
+### 1.0.2-beta.69
+
+*2021-08-04*
+
+#### Bug fixes
+
+- Fix sass compiling error (#2831)
+
+### 1.0.2-beta.68
+
+*2021-08-04*
+#### Bug fixes
+
+- Dropdown styles error (#2823 by @tolking)
+- Var fix input/radio/checkbox used by other components (#2821 by @YunYouJun)
+- Project node is not exporting issue (#2827 by @JeremyWuuuuu)
+
+### 1.0.2-beta.67
+
+*2021-08-04*
+
+#### Bug fixes
+
+- Theme-chalk fix fonts build by gulp (#2817 by @YunYouJun)
+
+#### Refactors
+
+- Var move css var from root to class (#2808 by @YunYouJun)
+
 ### 1.0.2-beta.66
 
 *2021-08-03*
