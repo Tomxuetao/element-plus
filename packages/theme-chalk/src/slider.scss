@@ -3,9 +3,6 @@
 @import 'mixins/mixins';
 @import 'mixins/utils';
 @import 'mixins/var';
-@import 'input-number';
-@import 'tooltip';
-@import 'common/var';
 
 @include b(slider) {
   @include set-component-css-var('slider', $--slider);
@@ -213,7 +210,7 @@
           border: var(--el-input-border, map.get($--input, 'border'));
           line-height: 20px;
           box-sizing: border-box;
-          transition: var(--el-border-transition-base);
+          transition: var(--el-transition-border);
         }
         .#{$namespace}-input-number__decrease {
           width: 18px;
