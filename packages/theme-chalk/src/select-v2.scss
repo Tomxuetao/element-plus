@@ -10,6 +10,10 @@
 $--input-inline-start: 15px !default;
 
 @include b(select-v2) {
+  @include set-component-css-var('select', $--select);
+}
+
+@include b(select-v2) {
   display: inline-block;
   position: relative;
   font-size: map.get($--input-font-size, 'default');
@@ -48,7 +52,7 @@ $--input-inline-start: 15px !default;
       border-color: var(--el-select-disabled-border);
 
       &:hover {
-        border-color: inherit;
+        border-color: var(--el-select-disabled-border);
       }
 
       &.is-focus {
@@ -94,6 +98,13 @@ $--input-inline-start: 15px !default;
     }
   }
 
+  .#{$namespace}-select-v2__tags-text {
+    text-overflow: ellipsis;
+    display: inline-block;
+    overflow-x: hidden;
+    vertical-align: bottom;
+  }
+
   @include e(empty) {
     padding: 10px 0;
     margin: 0;
@@ -113,7 +124,8 @@ $--input-inline-start: 15px !default;
   @include m(medium) {
     @include e(wrapper) {
       padding: 3px 30px 3px 0px;
-      &, #{$selector}__input-wrapper {
+      &,
+      #{$selector}__input-wrapper {
         line-height: map.get($--input-height, 'medium');
       }
     }
@@ -226,7 +238,7 @@ $--input-inline-start: 15px !default;
     right: 5px;
     height: 40px;
     top: 50%;
-    margin-top: -20px;
+    transform: translateY(-50%);
   }
 
   @include e(caret) {
@@ -310,7 +322,6 @@ $--input-inline-start: 15px !default;
     .#{$namespace}-icon-close {
       background-color: var(--el-text-color-placeholder);
       right: -7px;
-      top: 0;
       color: var(--el-color-white);
 
       &:hover {

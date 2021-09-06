@@ -16,9 +16,12 @@
       v-bind="attrs"
       :src="src"
       :style="imageStyle"
-      :class="{ 'el-image__inner--center': alignCenter, 'el-image__preview': preview }"
+      :class="{
+        'el-image__inner--center': alignCenter,
+        'el-image__preview': preview,
+      }"
       @click="clickHandler"
-    >
+    />
     <teleport to="body" :disabled="!appendToBody">
       <template v-if="preview">
         <image-viewer
@@ -28,25 +31,39 @@
           :url-list="previewSrcList"
           :hide-on-click-modal="hideOnClickModal"
           @close="closeViewer"
+          @switch="switchViewer"
         />
       </template>
     </teleport>
   </div>
 </template>
 
-<script lang='ts'>
-
-import { defineComponent, computed, ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
+<script lang="ts">
+import {
+  defineComponent,
+  computed,
+  ref,
+  onMounted,
+  onBeforeUnmount,
+  watch,
+  nextTick,
+} from 'vue'
 import { isString } from '@vue/shared'
 import throttle from 'lodash/throttle'
 import { useAttrs, useLocaleInject } from '@element-plus/hooks'
 import ImageViewer from '@element-plus/components/image-viewer'
 import isServer from '@element-plus/utils/isServer'
-import { on, off, getScrollContainer, isInContainer } from '@element-plus/utils/dom'
+import {
+  on,
+  off,
+  getScrollContainer,
+  isInContainer,
+} from '@element-plus/utils/dom'
 
 import type { CSSProperties, PropType } from 'vue'
 
-const isSupportObjectFit = () => document.documentElement.style.objectFit !== undefined
+const isSupportObjectFit = () =>
+  document.documentElement.style.objectFit !== undefined
 const isHtmlEle = (e: Node) => e && e.nodeType === 1
 
 const ObjectFit = {
@@ -99,7 +116,7 @@ export default defineComponent({
       default: 2000,
     },
   },
-  emits: ['error'],
+  emits: ['error', 'switch', 'close'],
   setup(props, { emit }) {
     const { t } = useLocaleInject()
     // init here
@@ -117,9 +134,9 @@ export default defineComponent({
     const imageStyle = computed(() => {
       const { fit } = props
       if (!isServer && fit) {
-        return (isSupportObjectFit()
-          ? { 'object-fit': fit }
-          : getImageStyle(fit)) as CSSProperties
+        return (
+          isSupportObjectFit() ? { 'object-fit': fit } : getImageStyle(fit)
+        ) as CSSProperties
       }
       return {}
     })
@@ -134,7 +151,7 @@ export default defineComponent({
       return Array.isArray(previewSrcList) && previewSrcList.length > 0
     })
     const imageIndex = computed(() => {
-      const { src , previewSrcList } = props
+      const { src, previewSrcList } = props
       let previewIndex = 0
       const srcIndex = previewSrcList.indexOf(src)
       if (srcIndex >= 0) {
@@ -143,23 +160,22 @@ export default defineComponent({
       return previewIndex
     })
 
-
     function getImageStyle(fit) {
       const imageWidth = imgWidth.value
       const imageHeight = imgHeight.value
 
       if (!container.value) return {}
-      const {
-        clientWidth: containerWidth,
-        clientHeight: containerHeight,
-      } = container.value
-      if (!imageWidth || !imageHeight || !containerWidth || !containerHeight) return {}
+      const { clientWidth: containerWidth, clientHeight: containerHeight } =
+        container.value
+      if (!imageWidth || !imageHeight || !containerWidth || !containerHeight)
+        return {}
 
       const imageAspectRatio = imageWidth / imageHeight
       const containerAspectRatio = containerWidth / containerHeight
 
       if (fit === ObjectFit.SCALE_DOWN) {
-        const isSmaller = imageWidth < containerWidth && imageHeight < containerHeight
+        const isSmaller =
+          imageWidth < containerWidth && imageHeight < containerHeight
         fit = isSmaller ? ObjectFit.NONE : ObjectFit.CONTAIN
       }
 
@@ -167,9 +183,13 @@ export default defineComponent({
         case ObjectFit.NONE:
           return { width: 'auto', height: 'auto' }
         case ObjectFit.CONTAIN:
-          return (imageAspectRatio < containerAspectRatio) ? { width: 'auto' } : { height: 'auto' }
+          return imageAspectRatio < containerAspectRatio
+            ? { width: 'auto' }
+            : { height: 'auto' }
         case ObjectFit.COVER:
-          return (imageAspectRatio < containerAspectRatio) ? { height: 'auto' } : { width: 'auto' }
+          return imageAspectRatio < containerAspectRatio
+            ? { height: 'auto' }
+            : { width: 'auto' }
         default:
           return {}
       }
@@ -185,18 +205,17 @@ export default defineComponent({
       hasLoadError.value = false
 
       const img = new Image()
-      img.onload = e => handleLoad(e, img)
+      img.onload = (e) => handleLoad(e, img)
       img.onerror = handleError
 
       // bind html attrs
       // so it can behave consistently
-      Object.keys(attributes)
-        .forEach(key => {
-          // avoid onload to be overwritten
-          if (key.toLowerCase() === 'onload') return
-          const value = attributes[key]
-          img.setAttribute(key, value)
-        })
+      Object.keys(attributes).forEach((key) => {
+        // avoid onload to be overwritten
+        if (key.toLowerCase() === 'onload') return
+        const value = attributes[key]
+        img.setAttribute(key, value)
+      })
       img.src = props.src
     }
 
@@ -246,11 +265,25 @@ export default defineComponent({
       _lazyLoadHandler = null
     }
 
+    function _wheelHandler(e) {
+      if (e.ctrlKey) {
+        if (e.deltaY < 0) {
+          e.preventDefault()
+          return false
+        }
+        if (e.deltaY > 0) {
+          e.preventDefault()
+          return false
+        }
+      }
+    }
+
     function clickHandler() {
       // don't show viewer when preview is false
       if (!preview.value) {
         return
       }
+      document.body.addEventListener('wheel', _wheelHandler, { passive: false })
       // prevent body scroll
       prevOverflow = document.body.style.overflow
       document.body.style.overflow = 'hidden'
@@ -258,13 +291,30 @@ export default defineComponent({
     }
 
     function closeViewer() {
+      document.body.removeEventListener('wheel', _wheelHandler, false)
       document.body.style.overflow = prevOverflow
       showViewer.value = false
+      emit('close')
     }
 
-    watch(() => props.src, () => {
-      loadImage()
-    })
+    function switchViewer(val) {
+      emit('switch', val)
+    }
+
+    watch(
+      () => props.src,
+      () => {
+        if (props.lazy) {
+          // reset status
+          loading.value = true
+          hasLoadError.value = false
+          removeLazyLoadListener()
+          nextTick(addLazyLoadListener)
+        } else {
+          loadImage()
+        }
+      }
+    )
 
     onMounted(() => {
       if (props.lazy) {
@@ -291,6 +341,7 @@ export default defineComponent({
       imageIndex,
       clickHandler,
       closeViewer,
+      switchViewer,
       container,
       handleError,
       t,

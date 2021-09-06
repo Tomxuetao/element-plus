@@ -10,17 +10,34 @@
 
 ```html
 <template>
-  <el-radio v-model="radio" label="1">备选项</el-radio>
-  <el-radio v-model="radio" label="2">备选项</el-radio>
+  <div>
+    <el-radio v-model="radio1" label="1">备选项1</el-radio>
+    <el-radio v-model="radio1" label="2">备选项2</el-radio>
+  </div>
+  <div>
+    <el-radio v-model="radio2" label="1" size="medium">备选项1</el-radio>
+    <el-radio v-model="radio2" label="2" size="medium">备选项2</el-radio>
+  </div>
+  <div>
+    <el-radio v-model="radio3" label="1" size="small">备选项1</el-radio>
+    <el-radio v-model="radio3" label="2" size="small">备选项2</el-radio>
+  </div>
+  <div>
+    <el-radio v-model="radio4" label="1" size="mini">备选项1</el-radio>
+    <el-radio v-model="radio4" label="2" size="mini">备选项2</el-radio>
+  </div>
 </template>
 
 <script>
   export default {
-    data () {
+    data() {
       return {
-        radio: '1'
-      };
-    }
+        radio1: '1',
+        radio2: '1',
+        radio3: '1',
+        radio4: '1',
+      }
+    },
   }
 </script>
 <!--
@@ -30,13 +47,17 @@
   export default defineComponent({
     setup() {
       return {
-        radio: ref('1'),
+        radio1: ref('1'),
+        radio2: ref('1'),
+        radio3: ref('1'),
+        radio4: ref('1'),
       }
     }
   })
 </setup>
 -->
 ```
+
 :::
 
 ### 禁用状态
@@ -44,6 +65,7 @@
 单选框不可用的状态。
 
 :::demo 只要在`el-radio`元素中设置`disabled`属性即可，它接受一个`Boolean`，`true`为禁用。
+
 ```html
 <template>
   <el-radio disabled v-model="radio" label="禁用">备选项</el-radio>
@@ -52,11 +74,11 @@
 
 <script>
   export default {
-    data () {
+    data() {
       return {
-        radio: '选中且禁用'
-      };
-    }
+        radio: '选中且禁用',
+      }
+    },
   }
 </script>
 <!--
@@ -73,6 +95,7 @@
 </setup>
 -->
 ```
+
 :::
 
 ### 单选框组
@@ -92,11 +115,11 @@
 
 <script>
   export default {
-    data () {
+    data() {
       return {
-        radio: 3
-      };
-    }
+        radio: 3,
+      }
+    },
   }
 </script>
 <!--
@@ -113,6 +136,7 @@
 </setup>
 -->
 ```
+
 :::
 
 ### 按钮样式
@@ -120,6 +144,7 @@
 按钮样式的单选组合。
 
 :::demo 只需要把`el-radio`元素换成`el-radio-button`元素即可，此外，Element Plus 还提供了`size`属性。
+
 ```html
 <template>
   <div>
@@ -132,7 +157,7 @@
   </div>
   <div style="margin-top: 20px">
     <el-radio-group v-model="radio2" size="medium">
-      <el-radio-button label="上海" ></el-radio-button>
+      <el-radio-button label="上海"></el-radio-button>
       <el-radio-button label="北京"></el-radio-button>
       <el-radio-button label="广州"></el-radio-button>
       <el-radio-button label="深圳"></el-radio-button>
@@ -141,7 +166,7 @@
   <div style="margin-top: 20px">
     <el-radio-group v-model="radio3" size="small">
       <el-radio-button label="上海"></el-radio-button>
-      <el-radio-button label="北京" disabled ></el-radio-button>
+      <el-radio-button label="北京" disabled></el-radio-button>
       <el-radio-button label="广州"></el-radio-button>
       <el-radio-button label="深圳"></el-radio-button>
     </el-radio-group>
@@ -158,14 +183,14 @@
 
 <script>
   export default {
-    data () {
+    data() {
       return {
         radio1: '上海',
         radio2: '上海',
         radio3: '上海',
-        radio4: '上海'
-      };
-    }
+        radio4: '上海',
+      }
+    },
   }
 </script>
 <!--
@@ -185,11 +210,13 @@
 </setup>
 -->
 ```
+
 :::
 
 ### 带有边框
 
 :::demo 设置`border`属性可以渲染为带有边框的单选框。
+
 ```html
 <template>
   <div>
@@ -216,14 +243,14 @@
 
 <script>
   export default {
-    data () {
+    data() {
       return {
         radio1: '1',
         radio2: '1',
         radio3: '1',
-        radio4: '1'
-      };
-    }
+        radio4: '1',
+      }
+    },
   }
 </script>
 <!--
@@ -243,40 +270,46 @@
 </setup>
 -->
 ```
+
 :::
 
 ### Radio Attributes
-| 参数      | 说明    | 类型      | 可选值       | 默认值   |
-|---------- |-------- |---------- |-------------  |-------- |
-| model-value / v-model | 绑定值 | string / number / boolean | — | — |
-| label     | Radio 的 value   | string / number / boolean    |       —        |      —   |
-| disabled  | 是否禁用    | boolean   | — | false   |
-| border  | 是否显示边框  | boolean   | — | false   |
-| size  | Radio 的尺寸，仅在 border 为真时有效  | string  | medium / small / mini | — |
-| name | 原生 name 属性 | string    |      —         |     —    |
+
+| 参数                  | 说明           | 类型                      | 可选值                | 默认值 |
+| --------------------- | -------------- | ------------------------- | --------------------- | ------ |
+| model-value / v-model | 绑定值         | string / number / boolean | —                     | —      |
+| label                 | Radio 的 value | string / number / boolean | —                     | —      |
+| disabled              | 是否禁用       | boolean                   | —                     | false  |
+| border                | 是否显示边框   | boolean                   | —                     | false  |
+| size                  | Radio 的尺寸   | string                    | medium / small / mini | —      |
+| name                  | 原生 name 属性 | string                    | —                     | —      |
 
 ### Radio Events
-| 事件名称 | 说明 | 回调参数 |
-|---------- |-------- |---------- |
-| change  | 绑定值变化时触发的事件 |  选中的 Radio label 值  |
+
+| 事件名称 | 说明                   | 回调参数              |
+| -------- | ---------------------- | --------------------- |
+| change   | 绑定值变化时触发的事件 | 选中的 Radio label 值 |
 
 ### Radio-group Attributes
-| 参数      | 说明    | 类型      | 可选值       | 默认值   |
-|---------- |-------- |---------- |-------------  |-------- |
-| model-value / v-model | 绑定值 | string / number / boolean | — | — |
-| size     | 单选框组尺寸，仅对按钮形式的 Radio 或带有边框的 Radio 有效   | string  | medium / small / mini |    —     |
-| disabled  | 是否禁用    | boolean   | — | false   |
-| text-color  | 按钮形式的 Radio 激活时的文本颜色    | string   | — | #ffffff   |
-| fill  | 按钮形式的 Radio 激活时的填充色和边框色    | string   | — | #409EFF   |
+
+| 参数                  | 说明                                    | 类型                      | 可选值                | 默认值  |
+| --------------------- | --------------------------------------- | ------------------------- | --------------------- | ------- |
+| model-value / v-model | 绑定值                                  | string / number / boolean | —                     | —       |
+| size                  | 单选框组尺寸                            | string                    | medium / small / mini | —       |
+| disabled              | 是否禁用                                | boolean                   | —                     | false   |
+| text-color            | 按钮形式的 Radio 激活时的文本颜色       | string                    | —                     | #ffffff |
+| fill                  | 按钮形式的 Radio 激活时的填充色和边框色 | string                    | —                     | #409EFF |
 
 ### Radio-group Events
-| 事件名称 | 说明 | 回调参数 |
-|---------- |-------- |---------- |
-| change  | 绑定值变化时触发的事件 |  选中的 Radio label 值  |
+
+| 事件名称 | 说明                   | 回调参数              |
+| -------- | ---------------------- | --------------------- |
+| change   | 绑定值变化时触发的事件 | 选中的 Radio label 值 |
 
 ### Radio-button Attributes
-| 参数      | 说明    | 类型      | 可选值       | 默认值   |
-|---------- |-------- |---------- |-------------  |-------- |
-| label     | Radio 的 value  | string / number  |        —       |     —    |
-| disabled  | 是否禁用    | boolean   | — | false   |
-| name | 原生 name 属性 | string    |      —         |     —    |
+
+| 参数     | 说明           | 类型            | 可选值 | 默认值 |
+| -------- | -------------- | --------------- | ------ | ------ |
+| label    | Radio 的 value | string / number | —      | —      |
+| disabled | 是否禁用       | boolean         | —      | false  |
+| name     | 原生 name 属性 | string          | —      | —      |

@@ -17,17 +17,26 @@
     <el-tooltip
       v-if="
         parentMenu.type.name === 'ElMenu' &&
-          rootMenu.props.collapse &&
-          slots.title
+        rootMenu.props.collapse &&
+        slots.title
       "
-      effect="dark"
+      :effect="Effect.DARK"
       placement="right"
     >
       <template #content>
         <slot name="title"></slot>
       </template>
       <div
-        style="position: absolute;left: 0;top: 0;height: 100%;width: 100%;display: inline-block;box-sizing: border-box;padding: 0 20px;"
+        style="
+          position: absolute;
+          left: 0;
+          top: 0;
+          height: 100%;
+          width: 100%;
+          display: inline-block;
+          box-sizing: border-box;
+          padding: 0 20px;
+        "
       >
         <slot></slot>
       </div>
@@ -48,8 +57,10 @@ import {
   getCurrentInstance,
 } from 'vue'
 import ElTooltip from '@element-plus/components/tooltip'
-import { RootMenuProvider, SubMenuProvider } from './menu'
+import { Effect } from '@element-plus/components/popper'
 import useMenu from './useMenu'
+
+import type { RootMenuProvider, SubMenuProvider } from './menu.type'
 
 export default defineComponent({
   name: 'ElMenuItem',
@@ -72,10 +83,10 @@ export default defineComponent({
     const rootMenu = inject<RootMenuProvider>('rootMenu')
     const { parentMenu, paddingStyle, indexPath } = useMenu(
       instance,
-      props.index,
+      computed(() => props.index)
     )
     const { addSubMenu, removeSubMenu } = inject<SubMenuProvider>(
-      `subMenu:${parentMenu.value.uid}`,
+      `subMenu:${parentMenu.value.uid}`
     )
 
     const active = computed(() => {
@@ -148,6 +159,7 @@ export default defineComponent({
     })
 
     return {
+      Effect,
       parentMenu,
       rootMenu,
       slots,

@@ -1,8 +1,5 @@
 <template>
-  <div
-    class="el-form-item"
-    :class="formItemClass"
-  >
+  <div ref="formItemRef" class="el-form-item" :class="formItemClass">
     <LabelWrap
       :is-auto-width="labelStyle.width === 'auto'"
       :update-all="elForm.labelWidth === 'auto'"
@@ -21,18 +18,14 @@
     <div class="el-form-item__content" :style="contentStyle">
       <slot></slot>
       <transition name="el-zoom-in-top">
-        <slot
-          v-if="shouldShowError"
-          name="error"
-          :error="validateMessage"
-        >
+        <slot v-if="shouldShowError" name="error" :error="validateMessage">
           <div
             class="el-form-item__error"
             :class="{
               'el-form-item__error--inline':
                 typeof inlineMessage === 'boolean'
                   ? inlineMessage
-                  : elForm.inlineMessage || false
+                  : elForm.inlineMessage || false,
             }"
           >
             {{ validateMessage }}
@@ -61,7 +54,11 @@ import {
 import AsyncValidator from 'async-validator'
 import mitt from 'mitt'
 import { NOOP } from '@vue/shared'
-import { addUnit, getPropByPath, useGlobalConfig } from '@element-plus/utils/util'
+import {
+  addUnit,
+  getPropByPath,
+  useGlobalConfig,
+} from '@element-plus/utils/util'
 import { isValidComponentSize } from '@element-plus/utils/validators'
 import LabelWrap from './label-wrap'
 import { elFormEvents, elFormItemKey, elFormKey } from '@element-plus/tokens'
@@ -116,6 +113,8 @@ export default defineComponent({
 
     const computedLabelWidth = ref('')
 
+    const formItemRef = ref<HTMLDivElement>()
+
     const vm = getCurrentInstance()
     const isNested = computed(() => {
       let parent = vm.parent
@@ -128,23 +127,23 @@ export default defineComponent({
       return false
     })
 
-
     let initialValue = undefined
 
     watch(
       () => props.error,
-      val => {
+      (val) => {
         validateMessage.value = val
         validateState.value = val ? 'error' : ''
-      }, {
-        immediate: true,
       },
+      {
+        immediate: true,
+      }
     )
     watch(
       () => props.validateStatus,
-      val => {
+      (val) => {
         validateState.value = val
-      },
+      }
     )
 
     const labelFor = computed(() => props.for || props.prop)
@@ -185,11 +184,11 @@ export default defineComponent({
       return getPropByPath(model, path, true).v
     })
     const isRequired = computed(() => {
-      let rules = getRules()
+      const rules = getRules()
       let required = false
 
       if (rules && rules.length) {
-        rules.every(rule => {
+        rules.every((rule) => {
           if (rule.required) {
             required = true
             return false
@@ -200,11 +199,14 @@ export default defineComponent({
       return required
     })
     const elFormItemSize = computed(() => props.size || elForm.size)
-    const sizeClass = computed(() => {
+    const sizeClass = computed<ComponentSize>(() => {
       return elFormItemSize.value || $ELEMENT.size
     })
 
-    const validate = (trigger: string, callback: ValidateFieldCallback = NOOP) => {
+    const validate = (
+      trigger: string,
+      callback: ValidateFieldCallback = NOOP
+    ) => {
       validateDisabled.value = false
       const rules = getFilteredRule(trigger)
       if ((!rules || rules.length === 0) && props.required === undefined) {
@@ -214,7 +216,7 @@ export default defineComponent({
       validateState.value = 'validating'
       const descriptor = {}
       if (rules && rules.length > 0) {
-        rules.forEach(rule => {
+        rules.forEach((rule) => {
           delete rule.trigger
         })
       }
@@ -227,15 +229,17 @@ export default defineComponent({
         { firstFields: true },
         (errors, invalidFields) => {
           validateState.value = !errors ? 'success' : 'error'
-          validateMessage.value = errors ? errors[0].message : ''
+          validateMessage.value = errors
+            ? errors[0].message || `${props.prop} is required`
+            : ''
           callback(validateMessage.value, invalidFields)
           elForm.emit?.(
             'validate',
             props.prop,
             !errors,
-            validateMessage.value || null,
+            validateMessage.value || null
           )
-        },
+        }
       )
     }
 
@@ -247,13 +251,13 @@ export default defineComponent({
     const resetField = () => {
       validateState.value = ''
       validateMessage.value = ''
-      let model = elForm.model
-      let value = fieldValue.value
+      const model = elForm.model
+      const value = fieldValue.value
       let path = props.prop
       if (path.indexOf(':') !== -1) {
         path = path.replace(/:/, '.')
       }
-      let prop = getPropByPath(model, path, true)
+      const prop = getPropByPath(model, path, true)
       validateDisabled.value = true
       if (Array.isArray(value)) {
         prop.o[prop.k] = [].concat(initialValue)
@@ -273,17 +277,15 @@ export default defineComponent({
         props.required !== undefined ? { required: !!props.required } : []
 
       const prop = getPropByPath(formRules, props.prop || '', false)
-      const normalizedRule = formRules
-        ? (prop.o[props.prop || ''] || prop.v)
-        : []
+      const normalizedRule = formRules ? prop.o[props.prop || ''] || prop.v : []
 
       return [].concat(selfRules || normalizedRule || []).concat(requiredRule)
     }
-    const getFilteredRule = trigger => {
+    const getFilteredRule = (trigger) => {
       const rules = getRules()
 
       return rules
-        .filter(rule => {
+        .filter((rule) => {
           if (!rule.trigger || trigger === '') return true
           if (Array.isArray(rule.trigger)) {
             return rule.trigger.indexOf(trigger) > -1
@@ -291,7 +293,7 @@ export default defineComponent({
             return rule.trigger === trigger
           }
         })
-        .map(rule => ({ ...rule }))
+        .map((rule) => ({ ...rule }))
     }
 
     const onFieldBlur = () => {
@@ -327,12 +329,13 @@ export default defineComponent({
       ...toRefs(props),
       size: sizeClass,
       validateState,
+      $el: formItemRef,
+      formItemMitt,
       removeValidateEvents,
       addValidateEvents,
       resetField,
       clearValidate,
       validate,
-      formItemMitt,
       updateComputedLabelWidth,
     })
 
@@ -340,9 +343,8 @@ export default defineComponent({
       if (props.prop) {
         elForm.formMitt?.emit(elFormEvents.addField, elFormItem)
 
-        let value = fieldValue.value
-        initialValue = Array.isArray(value)
-          ? [...value] : value
+        const value = fieldValue.value
+        initialValue = Array.isArray(value) ? [...value] : value
 
         addValidateEvents()
       }
@@ -366,10 +368,15 @@ export default defineComponent({
     ])
 
     const shouldShowError = computed(() => {
-      return validateState.value === 'error' && props.showMessage && elForm.showMessage
+      return (
+        validateState.value === 'error' &&
+        props.showMessage &&
+        elForm.showMessage
+      )
     })
 
     return {
+      formItemRef,
       formItemClass,
       shouldShowError,
       elForm,

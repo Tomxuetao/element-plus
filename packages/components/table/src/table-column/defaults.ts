@@ -3,7 +3,7 @@ import type { DefaultRow } from '../table/defaults'
 import type { ComponentInternalInstance, Ref, VNode } from 'vue'
 import type { Table } from '../table/defaults'
 
-type CI<T> = { column: TableColumnCtx<T>; $index: number; }
+type CI<T> = { column: TableColumnCtx<T>; $index: number }
 
 type Filters = {
   text: string
@@ -41,7 +41,7 @@ interface TableColumnCtx<T> {
     row: T,
     column: TableColumnCtx<T>,
     cellValue,
-    index: number,
+    index: number
   ) => VNode
   selectable: (row: T, index: number) => boolean
   reserveSelection: boolean
@@ -63,6 +63,7 @@ interface TableColumnCtx<T> {
   columns: TableColumnCtx<T>[]
   getColumnIndex: () => number
   no: number
+  filterOpened?: boolean
 }
 
 interface TableColumn<T> extends ComponentInternalInstance {
@@ -136,8 +137,7 @@ export default {
     },
     validator: (val: TableColumnCtx<unknown>['sortOrders']) => {
       return val.every(
-        (order: string) =>
-          ['ascending', 'descending', null].indexOf(order) > -1,
+        (order: string) => ['ascending', 'descending', null].indexOf(order) > -1
       )
     },
   },

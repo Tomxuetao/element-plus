@@ -1,6 +1,11 @@
 import type { PropType } from 'vue'
 import type { Store } from '../store'
-import type { ColumnCls, ColumnStyle, DefaultRow, Table } from '../table/defaults'
+import type {
+  ColumnCls,
+  ColumnStyle,
+  DefaultRow,
+  Table,
+} from '../table/defaults'
 
 interface TableBodyProps<T> {
   store: Store<T>

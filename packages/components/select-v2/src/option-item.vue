@@ -6,8 +6,8 @@
       'el-select-dropdown__option-item': true,
       'is-selected': selected,
       'is-disabled': disabled,
-      'is-craeted': created,
-      'hover': hovering
+      'is-created': created,
+      hover: hovering,
     }"
     @mouseenter="hoverItem"
     @click.stop="selectOptionClick"

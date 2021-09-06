@@ -2,10 +2,10 @@
   <el-popper
     v-model:visible="visible"
     trigger="click"
-    effect="light"
+    :effect="Effect.LIGHT"
     popper-class="el-popover"
     append-to-body
-    :fallback-placements="['bottom' ,'top', 'right', 'left']"
+    :fallback-placements="['bottom', 'top', 'right', 'left']"
   >
     <div class="el-popconfirm">
       <p class="el-popconfirm__main">
@@ -13,23 +13,15 @@
           v-if="!hideIcon"
           :class="icon"
           class="el-popconfirm__icon"
-          :style="{color: iconColor}"
+          :style="{ color: iconColor }"
         ></i>
         {{ title }}
       </p>
       <div class="el-popconfirm__action">
-        <el-button
-          size="mini"
-          :type="cancelButtonType"
-          @click="cancel"
-        >
+        <el-button size="mini" :type="cancelButtonType" @click="cancel">
           {{ cancelButtonText_ }}
         </el-button>
-        <el-button
-          size="mini"
-          :type="confirmButtonType"
-          @click="confirm"
-        >
+        <el-button size="mini" :type="confirmButtonType" @click="confirm">
           {{ confirmButtonText_ }}
         </el-button>
       </div>
@@ -43,8 +35,11 @@
 <script lang="ts">
 import { defineComponent, ref, computed } from 'vue'
 import ElButton from '@element-plus/components/button'
-import ElPopper from '@element-plus/components/popper'
+import ElPopper, { Effect } from '@element-plus/components/popper'
 import { useLocaleInject } from '@element-plus/hooks'
+
+import type { PropType } from 'vue'
+import type { ButtonType } from '@element-plus/components/button/src/types'
 
 export default defineComponent({
   name: 'ElPopconfirm',
@@ -65,12 +60,12 @@ export default defineComponent({
       type: String,
     },
     confirmButtonType: {
-      type: String,
-      default: 'primary',
+      type: String as PropType<ButtonType>,
+      default: 'primary' as ButtonType,
     },
     cancelButtonType: {
-      type: String,
-      default: 'text',
+      type: String as PropType<ButtonType>,
+      default: 'text' as ButtonType,
     },
     icon: {
       type: String,
@@ -85,8 +80,8 @@ export default defineComponent({
       default: false,
     },
   },
-  emits:['confirm','cancel'],
-  setup(props,{ emit }){
+  emits: ['confirm', 'cancel'],
+  setup(props, { emit }) {
     const { t } = useLocaleInject()
     const visible = ref(false)
     const confirm = () => {
@@ -104,6 +99,7 @@ export default defineComponent({
       return props.cancelButtonText || t('el.popconfirm.cancelButtonText')
     })
     return {
+      Effect,
       visible,
       confirm,
       cancel,

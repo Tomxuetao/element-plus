@@ -7,7 +7,7 @@
       {
         'el-progress--without-text': !showText,
         'el-progress--text-inside': textInside,
-      }
+      },
     ]"
     role="progressbar"
     :aria-valuenow="percentage"
@@ -15,15 +15,21 @@
     aria-valuemax="100"
   >
     <div v-if="type === 'line'" class="el-progress-bar">
-      <div class="el-progress-bar__outer" :style="{ height: `${strokeWidth}px` }">
+      <div
+        class="el-progress-bar__outer"
+        :style="{ height: `${strokeWidth}px` }"
+      >
         <div
           :class="[
             'el-progress-bar__inner',
-            { 'el-progress-bar__inner--indeterminate': indeterminate }
+            { 'el-progress-bar__inner--indeterminate': indeterminate },
           ]"
           :style="barStyle"
         >
-          <div v-if="(showText || $slots.default) && textInside" class="el-progress-bar__innerText">
+          <div
+            v-if="(showText || $slots.default) && textInside"
+            class="el-progress-bar__innerText"
+          >
             <slot v-bind="slotData">
               <span>{{ content }}</span>
             </slot>
@@ -31,7 +37,11 @@
         </div>
       </div>
     </div>
-    <div v-else class="el-progress-circle" :style="{ height: `${width}px`, width: `${width}px` }">
+    <div
+      v-else
+      class="el-progress-circle"
+      :style="{ height: `${width}px`, width: `${width}px` }"
+    >
       <svg viewBox="0 0 100 100">
         <path
           class="el-progress-circle__track"
@@ -67,8 +77,9 @@
 
 <script lang="ts">
 import { computed, defineComponent } from 'vue'
+import type { PropType, SVGAttributes } from 'vue'
 
-type ProgressFuncType = (percentage: number) => string;
+type ProgressFuncType = (percentage: number) => string
 
 interface IProgressProps {
   type: string
@@ -77,11 +88,14 @@ interface IProgressProps {
   indeterminate: boolean
   duration: number
   strokeWidth: number
-  strokeLinecap: string
+  strokeLinecap: NonNullable<SVGAttributes['stroke-linecap']>
   textInside: boolean
   width: number
   showText: boolean
-  color: string | Array<string | { color: string; percentage: number; }> | ProgressFuncType
+  color:
+    | string
+    | Array<string | { color: string; percentage: number }>
+    | ProgressFuncType
   format: ProgressFuncType
 }
 
@@ -91,7 +105,8 @@ export default defineComponent({
     type: {
       type: String,
       default: 'line',
-      validator: (val: string): boolean => ['line', 'circle', 'dashboard'].indexOf(val) > -1,
+      validator: (val: string): boolean =>
+        ['line', 'circle', 'dashboard'].indexOf(val) > -1,
     },
     percentage: {
       type: Number,
@@ -102,7 +117,8 @@ export default defineComponent({
     status: {
       type: String,
       default: '',
-      validator: (val: string): boolean => ['', 'success', 'exception', 'warning'].indexOf(val) > -1,
+      validator: (val: string): boolean =>
+        ['', 'success', 'exception', 'warning'].indexOf(val) > -1,
     },
     indeterminate: {
       type: Boolean,
@@ -117,8 +133,8 @@ export default defineComponent({
       default: 6,
     },
     strokeLinecap: {
-      type: String,
-      default: 'round',
+      type: String as PropType<IProgressProps['strokeLinecap']>,
+      default: 'round' as IProgressProps['strokeLinecap'],
     },
     textInside: {
       type: Boolean,
@@ -151,7 +167,7 @@ export default defineComponent({
     })
 
     const relativeStrokeWidth = computed(() => {
-      return (props.strokeWidth / props.width * 100).toFixed(1)
+      return ((props.strokeWidth / props.width) * 100).toFixed(1)
     })
 
     const radius = computed(() => {
@@ -182,20 +198,24 @@ export default defineComponent({
     })
 
     const strokeDashoffset = computed(() => {
-      const offset = -1 * perimeter.value * (1 - rate.value) / 2
+      const offset = (-1 * perimeter.value * (1 - rate.value)) / 2
       return `${offset}px`
     })
 
     const trailPathStyle = computed(() => {
       return {
-        strokeDasharray: `${(perimeter.value * rate.value)}px, ${perimeter.value}px`,
+        strokeDasharray: `${perimeter.value * rate.value}px, ${
+          perimeter.value
+        }px`,
         strokeDashoffset: strokeDashoffset.value,
       }
     })
 
     const circlePathStyle = computed(() => {
       return {
-        strokeDasharray: `${perimeter.value * rate.value * (props.percentage / 100)}px, ${perimeter.value}px`,
+        strokeDasharray: `${
+          perimeter.value * rate.value * (props.percentage / 100)
+        }px, ${perimeter.value}px`,
         strokeDashoffset: strokeDashoffset.value,
         transition: 'stroke-dasharray 0.6s ease 0s, stroke 0.6s ease',
       }
@@ -228,7 +248,9 @@ export default defineComponent({
         return 'el-icon-warning'
       }
       if (props.type === 'line') {
-        return props.status === 'success' ? 'el-icon-circle-check' : 'el-icon-circle-close'
+        return props.status === 'success'
+          ? 'el-icon-circle-check'
+          : 'el-icon-circle-close'
       } else {
         return props.status === 'success' ? 'el-icon-check' : 'el-icon-close'
       }
@@ -244,7 +266,7 @@ export default defineComponent({
       return props.format(props.percentage)
     })
 
-    const getCurrentColor = percentage => {
+    const getCurrentColor = (percentage) => {
       const { color } = props
       if (typeof color === 'function') {
         return color(percentage)
@@ -261,7 +283,9 @@ export default defineComponent({
           }
           return seriesColor
         })
-        const colorArray = seriesColors.sort((a, b) => a.percentage - b.percentage)
+        const colorArray = seriesColors.sort(
+          (a, b) => a.percentage - b.percentage
+        )
 
         for (let i = 0; i < colorArray.length; i++) {
           if (colorArray[i].percentage > percentage) {

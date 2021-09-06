@@ -35,7 +35,7 @@ export const timePickerDefaultProps = {
     type: Boolean,
     default: true,
   },
-  prefixIcon:{
+  prefixIcon: {
     type: String,
     default: '',
   },
@@ -56,7 +56,7 @@ export const timePickerDefaultProps = {
     default: '',
   },
   popperOptions: {
-    type: Object as PropType<Options>,
+    type: Object as PropType<Partial<Options>>,
     default: () => ({}),
   },
   modelValue: {
@@ -96,7 +96,7 @@ export const timePickerDefaultProps = {
   },
   shortcuts: {
     type: Array,
-    default: () => ([]),
+    default: () => [],
   },
   arrowControl: {
     type: Boolean,

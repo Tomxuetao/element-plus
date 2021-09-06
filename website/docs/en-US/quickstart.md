@@ -30,20 +30,18 @@ functionalities based on ES Module.
 
 ```html
 <template>
-  <el-button>
-    I am ElButton
-  </el-button>
+  <el-button> I am ElButton </el-button>
 </template>
 <script>
-import { defineComponent } from 'vue'
-import { ElButton } from 'element-plus'
+  import { defineComponent } from 'vue'
+  import { ElButton } from 'element-plus'
 
-export default defineComponent({
-  name: 'app'
-  components: {
-    ElButton,
-  },
-})
+  export default defineComponent({
+    name: 'app'
+    components: {
+      ElButton,
+    },
+  })
 </script>
 ```
 
@@ -66,7 +64,7 @@ Import via HTML `head` tag.
 ```html
 <!-- index.html -->
 <head>
-  <link rel="stylesheet" href="//unpkg.com/element-plus/dist/index.css">
+  <link rel="stylesheet" href="//unpkg.com/element-plus/dist/index.css" />
 </head>
 ```
 
@@ -97,23 +95,23 @@ Full import:
 
 ```js
 import { createApp } from 'vue'
-import ElementPlus from 'element-plus';
-import App from './App.vue';
+import ElementPlus from 'element-plus'
+import App from './App.vue'
 
 const app = createApp(App)
-app.use(ElementPlus, { size: 'small', zIndex: 3000 });
+app.use(ElementPlus, { size: 'small', zIndex: 3000 })
 ```
 
 On demand:
 
 ```js
 import { createApp } from 'vue'
-import { ElButton } from 'element-plus';
-import App from './App.vue';
+import { ElButton } from 'element-plus'
+import App from './App.vue'
 
 const app = createApp(App)
 app.config.globalProperties.$ELEMENT = option
-app.use(ElButton);
+app.use(ElButton)
 ```
 
 ## Using Nuxt.js
@@ -155,16 +153,18 @@ import vue from '@vitejs/plugin-vue'
 import VitePluginElementPlus from 'vite-plugin-element-plus'
 
 // https://vitejs.dev/config/
-export default defineConfig({
-  plugins: [
-    vue(),
-    VitePluginElementPlus({
-      // if you need to use the *.scss source file, you need to uncomment this comment
-      // useSource: true
-    }),
-  ],
+export default defineConfig(({ mode }) => {
+  return {
+    plugins: [
+      vue(),
+      VitePluginElementPlus({
+        // if you need to use the *.scss source file, you need to uncomment this comment
+        // useSource: true
+        format: mode === 'development' ? 'esm' : 'cjs',
+      }),
+    ],
+  }
 })
-
 ```
 
 For all public API, you can refer to [vite-plugin-element-plus](https://github.com/element-plus/vite-plugin-element-plus)
@@ -189,7 +189,7 @@ Then you need to add the code below into your `babel.config.js` file.
 module.exports = {
   plugins: [
     [
-      "import",
+      'import',
       {
         libraryName: 'element-plus',
         // import component
@@ -207,6 +207,6 @@ module.exports = {
         },
       },
     ],
-  ]
+  ],
 }
 ```

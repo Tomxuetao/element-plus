@@ -3,10 +3,10 @@
     :id="id"
     class="el-checkbox"
     :class="[
-      border && checkboxSize ? 'el-checkbox--' + checkboxSize : '',
+      checkboxSize ? 'el-checkbox--' + checkboxSize : '',
       { 'is-disabled': isDisabled },
       { 'is-bordered': border },
-      { 'is-checked': isChecked }
+      { 'is-checked': isChecked },
     ]"
     :aria-controls="indeterminate ? controls : null"
   >
@@ -16,17 +16,16 @@
         'is-disabled': isDisabled,
         'is-checked': isChecked,
         'is-indeterminate': indeterminate,
-        'is-focus': focus
+        'is-focus': focus,
       }"
-      :tabindex="indeterminate ? 0 : false"
-      :role="indeterminate ? 'checkbox' : false"
+      :tabindex="indeterminate ? 0 : undefined"
+      :role="indeterminate ? 'checkbox' : undefined"
       :aria-checked="indeterminate ? 'mixed' : false"
     >
       <span class="el-checkbox__inner"></span>
       <input
         v-if="trueLabel || falseLabel"
         v-model="model"
-        :checked="isChecked"
         class="el-checkbox__original"
         type="checkbox"
         :aria-hidden="indeterminate ? 'true' : 'false'"
@@ -37,7 +36,7 @@
         @change="handleChange"
         @focus="focus = true"
         @blur="focus = false"
-      >
+      />
       <input
         v-else
         v-model="model"
@@ -50,7 +49,7 @@
         @change="handleChange"
         @focus="focus = true"
         @blur="focus = false"
-      >
+      />
     </span>
     <span v-if="$slots.default || label" class="el-checkbox__label">
       <slot></slot>
@@ -58,10 +57,8 @@
     </span>
   </label>
 </template>
-<script lang='ts'>
-import {
-  defineComponent,
-} from 'vue'
+<script lang="ts">
+import { defineComponent } from 'vue'
 import { UPDATE_MODEL_EVENT } from '@element-plus/utils/constants'
 import { isValidComponentSize } from '@element-plus/utils/validators'
 import { useCheckbox } from './useCheckbox'

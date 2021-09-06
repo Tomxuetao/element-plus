@@ -112,7 +112,7 @@ export function useSpace(props: ExtractPropTypes<typeof defaultProps>) {
         }
       }
     },
-    { immediate: true },
+    { immediate: true }
   )
 
   const containerStyle = computed(() => {

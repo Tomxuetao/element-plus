@@ -5,6 +5,8 @@ import PopupManager from '@element-plus/utils/popup-manager'
 import isServer from '@element-plus/utils/isServer'
 import { createLoadingComponent } from './createLoadingComponent'
 
+import type { CSSProperties } from 'vue'
+
 import type {
   ILoadingGlobalConfig,
   ILoadingInstance,
@@ -28,12 +30,16 @@ const globalLoadingOption: ILoadingGlobalConfig = {
   fullscreenLoading: null,
 }
 
-const addStyle = async (options: ILoadingOptions, parent: HTMLElement, instance: ILoadingInstance) => {
-  const maskStyle: Partial<CSSStyleDeclaration> = {}
+const addStyle = async (
+  options: ILoadingOptions,
+  parent: HTMLElement,
+  instance: ILoadingInstance
+) => {
+  const maskStyle: Partial<CSSProperties> = {}
   if (options.fullscreen) {
     instance.originalPosition.value = getStyle(document.body, 'position')
     instance.originalOverflow.value = getStyle(document.body, 'overflow')
-    maskStyle.zIndex = String(PopupManager.nextZIndex())
+    maskStyle.zIndex = PopupManager.nextZIndex()
   } else if (options.body) {
     instance.originalPosition.value = getStyle(document.body, 'position')
     /**
@@ -41,28 +47,37 @@ const addStyle = async (options: ILoadingOptions, parent: HTMLElement, instance:
      * because some component's height maybe 0.
      * e.g. el-table.
      */
-    await nextTick();
-    ['top', 'left'].forEach(property => {
+    await nextTick()
+    ;['top', 'left'].forEach((property) => {
       const scroll = property === 'top' ? 'scrollTop' : 'scrollLeft'
-      maskStyle[property] = (options.target as HTMLElement).getBoundingClientRect()[property] +
+      maskStyle[property] =
+        (options.target as HTMLElement).getBoundingClientRect()[property] +
         document.body[scroll] +
         document.documentElement[scroll] -
-        parseInt(getStyle(document.body, `margin-${ property }`), 10) +
+        parseInt(getStyle(document.body, `margin-${property}`), 10) +
         'px'
-    });
-    ['height', 'width'].forEach(property => {
-      maskStyle[property] = (options.target as HTMLElement).getBoundingClientRect()[property] + 'px'
+    })
+    ;['height', 'width'].forEach((property) => {
+      maskStyle[property] =
+        (options.target as HTMLElement).getBoundingClientRect()[property] + 'px'
     })
   } else {
     instance.originalPosition.value = getStyle(parent, 'position')
   }
-  Object.keys(maskStyle).forEach(property => {
+  Object.keys(maskStyle).forEach((property) => {
     instance.$el.style[property] = maskStyle[property]
   })
 }
 
-const addClassList = (options: ILoadingOptions, parent: HTMLElement, instance: ILoadingInstance) => {
-  if (instance.originalPosition.value !== 'absolute' && instance.originalPosition.value !== 'fixed') {
+const addClassList = (
+  options: ILoadingOptions,
+  parent: HTMLElement,
+  instance: ILoadingInstance
+) => {
+  if (
+    instance.originalPosition.value !== 'absolute' &&
+    instance.originalPosition.value !== 'fixed'
+  ) {
     addClass(parent, 'el-loading-parent--relative')
   } else {
     removeClass(parent, 'el-loading-parent--relative')

@@ -1,4 +1,10 @@
-import type { ComponentInternalInstance, CSSProperties, Ref, VNode, PropType } from 'vue'
+import type {
+  ComponentInternalInstance,
+  CSSProperties,
+  Ref,
+  VNode,
+  PropType,
+} from 'vue'
 import type { Nullable } from '@element-plus/utils/types'
 import type { Store } from '../store'
 import type { TableColumnCtx } from '../table-column/defaults'
@@ -31,7 +37,7 @@ type HoverState<T> = Nullable<{
   row: T
 }>
 
-type RIS<T> = { row: T; $index: number; store: Store<T>; }
+type RIS<T> = { row: T; $index: number; store: Store<T> }
 
 type RenderExpanded<T> = ({ row, $index, store }: RIS<T>) => VNode
 
@@ -51,10 +57,10 @@ interface Table<T> extends ComponentInternalInstance {
   state: TableState
 }
 
-type ColumnCls<T> = string | ((data: { row: T; rowIndex: number; }) => string)
+type ColumnCls<T> = string | ((data: { row: T; rowIndex: number }) => string)
 type ColumnStyle<T> =
   | CSSProperties
-  | ((data: { row: T; rowIndex: number; }) => CSSProperties)
+  | ((data: { row: T; rowIndex: number }) => CSSProperties)
 type CellCls<T> =
   | string
   | ((data: {
@@ -239,4 +245,15 @@ export default {
     default: '',
   },
 }
-export type { SummaryMethod, Table, TableProps, TableRefs, ColumnCls, ColumnStyle, TreeNode, RenderRowData, Sort, Filter }
+export type {
+  SummaryMethod,
+  Table,
+  TableProps,
+  TableRefs,
+  ColumnCls,
+  ColumnStyle,
+  TreeNode,
+  RenderRowData,
+  Sort,
+  Filter,
+}

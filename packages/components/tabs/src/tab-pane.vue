@@ -12,7 +12,14 @@
   </div>
 </template>
 <script lang="ts">
-import { defineComponent, ref, computed, inject, getCurrentInstance } from 'vue'
+import {
+  defineComponent,
+  ref,
+  computed,
+  inject,
+  getCurrentInstance,
+  watch,
+} from 'vue'
 import type { RootTabs, UpdatePaneStateCallback } from './token'
 
 export default defineComponent({
@@ -45,11 +52,7 @@ export default defineComponent({
     })
 
     const active = computed(() => {
-      const active = rootTabs.currentName.value === (props.name || index.value)
-      if (active) {
-        loaded.value = true
-      }
-      return active
+      return rootTabs.currentName.value === (props.name || index.value)
     })
 
     const paneName = computed((): string => {
@@ -58,6 +61,10 @@ export default defineComponent({
 
     const shouldBeRender = computed(() => {
       return !props.lazy || loaded.value || active.value
+    })
+
+    watch(active, (val) => {
+      if (val) loaded.value = true
     })
 
     const instance = getCurrentInstance()

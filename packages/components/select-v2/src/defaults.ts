@@ -3,6 +3,7 @@ import { isValidComponentSize } from '@element-plus/utils/validators'
 import type { PropType } from 'vue'
 import type { ComponentSize } from '@element-plus/utils/types'
 import type { OptionType } from './select.types'
+import type { Options } from '@element-plus/components/popper'
 
 export const SelectProps = {
   allowCreate: Boolean,
@@ -37,7 +38,9 @@ export const SelectProps = {
   loading: Boolean,
   loadingText: String,
   label: String,
-  modelValue: [Array, String, Number, Boolean, Object] as PropType<any[] | string | number | boolean | Record<string, any> | any>,
+  modelValue: [Array, String, Number, Boolean, Object] as PropType<
+    any[] | string | number | boolean | Record<string, any> | any
+  >,
   multiple: Boolean,
   multipleLimit: {
     type: Number,
@@ -64,8 +67,8 @@ export const SelectProps = {
     default: '',
   },
   popperOptions: {
-    type: Object,
-    default: () => ({}),
+    type: Object as PropType<Partial<Options>>,
+    default: () => ({} as Partial<Options>),
   },
   remote: Boolean,
   size: {

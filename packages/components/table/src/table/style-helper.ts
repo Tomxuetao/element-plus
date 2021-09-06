@@ -1,4 +1,13 @@
-import { onMounted, onUnmounted, computed, ref, watchEffect, watch, unref } from 'vue'
+import {
+  onMounted,
+  onUnmounted,
+  computed,
+  ref,
+  watchEffect,
+  watch,
+  unref,
+  nextTick,
+} from 'vue'
 import {
   addResizeListener,
   removeResizeListener,
@@ -6,6 +15,7 @@ import {
 import throttle from 'lodash/throttle'
 import { parseHeight } from '../util'
 import { useGlobalConfig } from '@element-plus/utils/util'
+import { on, off } from '@element-plus/utils/dom'
 
 import type { ResizableElement } from '@element-plus/utils/resize-event'
 import type { Table, TableProps } from './defaults'
@@ -17,7 +27,7 @@ function useStyle<T>(
   props: TableProps<T>,
   layout: TableLayout<T>,
   store: Store<T>,
-  table: Table<T>,
+  table: Table<T>
 ) {
   const $ELEMENT = useGlobalConfig()
   const isHidden = ref(false)
@@ -38,21 +48,25 @@ function useStyle<T>(
   watchEffect(() => {
     layout.setMaxHeight(props.maxHeight)
   })
-  watch(() => [props.currentRowKey, store.states.rowKey], ([currentRowKey, rowKey]) => {
-    if (!unref(rowKey)) return
-    store.setCurrentRowKey(currentRowKey + '')
-  }, {
-    immediate: true,
-  })
+  watch(
+    () => [props.currentRowKey, store.states.rowKey],
+    ([currentRowKey, rowKey]) => {
+      if (!unref(rowKey)) return
+      store.setCurrentRowKey(currentRowKey + '')
+    },
+    {
+      immediate: true,
+    }
+  )
   watch(
     () => props.data,
-    data => {
+    (data) => {
       table.store.commit('setData', data)
     },
     {
       immediate: true,
       deep: true,
-    },
+    }
   )
   watchEffect(() => {
     if (props.expandRowKeys) {
@@ -88,11 +102,11 @@ function useStyle<T>(
     layout.updateColumnsWidth()
     syncPostion()
   }
-
-  onMounted(() => {
+  onMounted(async () => {
     setScrollClass('is-scrolling-left')
-    bindEvents()
     store.updateColumns()
+    await nextTick()
+    bindEvents()
     doLayout()
 
     resizeState.value = {
@@ -115,7 +129,7 @@ function useStyle<T>(
   const setScrollClassByEl = (el: HTMLElement, className: string) => {
     if (!el) return
     const classList = Array.from(el.classList).filter(
-      item => !item.startsWith('is-scrolling-'),
+      (item) => !item.startsWith('is-scrolling-')
     )
     classList.push(layout.scrollX.value ? className : 'is-scrolling-none')
     el.className = classList.join(' ')
@@ -126,12 +140,8 @@ function useStyle<T>(
   }
   const syncPostion = throttle(function () {
     if (!table.refs.bodyWrapper) return
-    const {
-      scrollLeft,
-      scrollTop,
-      offsetWidth,
-      scrollWidth,
-    } = table.refs.bodyWrapper
+    const { scrollLeft, scrollTop, offsetWidth, scrollWidth } =
+      table.refs.bodyWrapper
     const {
       headerWrapper,
       footerWrapper,
@@ -153,12 +163,13 @@ function useStyle<T>(
   }, 10)
 
   const bindEvents = () => {
-    window.addEventListener('resize', doLayout)
     table.refs.bodyWrapper.addEventListener('scroll', syncPostion, {
       passive: true,
     })
     if (props.fit) {
       addResizeListener(table.vnode.el as ResizableElement, resizeListener)
+    } else {
+      on(window, 'resize', doLayout)
     }
   }
   onUnmounted(() => {
@@ -166,9 +177,10 @@ function useStyle<T>(
   })
   const unbindEvents = () => {
     table.refs.bodyWrapper?.removeEventListener('scroll', syncPostion, true)
-    window.removeEventListener('resize', doLayout)
     if (props.fit) {
       removeResizeListener(table.vnode.el as ResizableElement, resizeListener)
+    } else {
+      off(window, 'resize', doLayout)
     }
   }
   const resizeListener = () => {

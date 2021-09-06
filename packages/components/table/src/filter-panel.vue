@@ -6,7 +6,7 @@
     :placement="placement"
     :show-arrow="false"
     :stop-popper-mouse-event="false"
-    effect="light"
+    :effect="Effect.LIGHT"
     pure
     manual-mode
     popper-class="el-table-filter"
@@ -16,7 +16,10 @@
       <div v-if="multiple">
         <div class="el-table-filter__content">
           <el-scrollbar wrap-class="el-table-filter__wrap">
-            <el-checkbox-group v-model="filteredValue" class="el-table-filter__checkbox-group">
+            <el-checkbox-group
+              v-model="filteredValue"
+              class="el-table-filter__checkbox-group"
+            >
               <el-checkbox
                 v-for="filter in filters"
                 :key="filter.value"
@@ -36,7 +39,9 @@
           >
             {{ t('el.table.confirmFilter') }}
           </button>
-          <button type="button" @click="handleReset">{{ t('el.table.resetFilter') }}</button>
+          <button type="button" @click="handleReset">
+            {{ t('el.table.resetFilter') }}
+          </button>
         </div>
       </div>
       <ul v-else class="el-table-filter__list">
@@ -79,23 +84,14 @@
 </template>
 
 <script lang="ts">
-import {
-  defineComponent,
-  ref,
-  computed,
-  getCurrentInstance,
-  watch,
-} from 'vue'
+import { defineComponent, ref, computed, getCurrentInstance, watch } from 'vue'
 import ElCheckbox from '@element-plus/components/checkbox'
 import { ClickOutside } from '@element-plus/directives'
 import { useLocaleInject } from '@element-plus/hooks'
-import ElPopper from '@element-plus/components/popper'
+import ElPopper, { Effect, Placement } from '@element-plus/components/popper'
 import ElScrollbar from '@element-plus/components/scrollbar'
 
-import type {
-  WritableComputedRef,
-  PropType,
-} from 'vue'
+import type { WritableComputedRef, PropType } from 'vue'
 import type { TableColumnCtx } from './table-column/defaults'
 import type { TableHeader } from './table-header'
 import type { Store } from './store'
@@ -113,7 +109,7 @@ export default defineComponent({
   directives: { ClickOutside },
   props: {
     placement: {
-      type: String,
+      type: String as PropType<Placement>,
       default: 'bottom-start',
     },
     store: {
@@ -169,7 +165,7 @@ export default defineComponent({
       }
       return true
     })
-    const isActive = filter => {
+    const isActive = (filter) => {
       return filter.value === filterValue.value
     }
     const hidden = () => {
@@ -209,7 +205,7 @@ export default defineComponent({
     }
     watch(
       tooltipVisible,
-      value => {
+      (value) => {
         // todo
         if (props.column) {
           props.upDataColumn('filterOpened', value)
@@ -217,7 +213,7 @@ export default defineComponent({
       },
       {
         immediate: true,
-      },
+      }
     )
 
     const popperPaneRef = computed(() => {
@@ -239,6 +235,7 @@ export default defineComponent({
       hideFilterPanel,
       popperPaneRef,
       tooltip,
+      Effect,
     }
   },
 })
