@@ -1,68 +1,18 @@
-import chalk from 'chalk'
+import { cyan, bold, yellow, green } from 'chalk'
 
-export default async function reporter(opt, outputOptions, info) {
+import type { FileSizeReporter } from 'rollup-plugin-filesize'
+
+const reporter: FileSizeReporter = (opt, outputOptions, info) => {
   const values = [
-    // ...(outputOptions.file || outputOptions.dest
-    //   ? [
-    //     `${title('Destination: ')}${value(
-    //       outputOptions.file || outputOptions.dest,
-    //     )}`,
-    //   ]
-    // :
-    info.fileName ? [`${outputOptions.file.split('packages/').pop()}`] : [],
-    // )
-    // ...(info.bundleSizeBefore
-    //   ? [
-    //     `${value(info.bundleSize)} (was ${value(
-    //       info.bundleSizeBefore,
-    //     )}${info.lastVersion
-    //       ? ` in version ${info.lastVersion}`
-    //       : ' in last build'
-    //     })`,
-    //   ]
-    //   :
+    info.fileName ? [`${outputOptions.file?.split('packages/').pop()}`] : [],
+
     [`${info.bundleSize}`],
-    // ),
-    ...(info.minSize
-      ? // info.minSizeBefore
-        //   ? [
-        //     `${title('Minified Size: ')} ${value(info.minSize)} (was ${value(
-        //       info.minSizeBefore,
-        //     )}${info.lastVersion
-        //       ? ` in version ${info.lastVersion}`
-        //       : ' in last build'
-        //     })`,
-        //   ]
-        //   :
-        [`${info.minSize}`]
-      : []),
-    // ...(info.gzipSize
-    //   ? info.gzipSizeBefore
-    //     ? [
-    //       `${title('Gzipped Size: ')} ${value(info.gzipSize)} (was ${value(
-    //         info.gzipSizeBefore,
-    //       )}${info.lastVersion
-    //         ? ` in version ${info.lastVersion}`
-    //         : ' in last build'
-    //       })`,
-    //     ]
-    //     : [`${title('Gzipped Size: ')} ${value(info.gzipSize)}`]
-    //   : []),
-    // ...(info.brotliSize
-    //   ? info.brotliSizeBefore
-    //     ? [
-    //       `${title('Brotli size: ')}${value(info.brotliSize)} (was ${value(
-    //         info.brotliSizeBefore,
-    //       )}${info.lastVersion
-    //         ? ` in version ${info.lastVersion}`
-    //         : ' in last build'
-    //       })`,
-    //     ]
-    //     : [`${title('Brotli size: ')}${value(info.brotliSize)}`]
-    //   : []),
+    ...(info.minSize ? [`${info.minSize}`] : []),
   ]
 
-  return `${chalk.cyan(chalk.bold(values[0]))}: bundle size ${chalk.yellow(
+  return `${cyan(bold(values[0]))}: bundle size ${yellow(
     values[1]
-  )} -> minified ${chalk.green(values[2])}`
+  )} -> minified ${green(values[2])}`
 }
+
+export default reporter

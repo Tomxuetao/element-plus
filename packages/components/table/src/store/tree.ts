@@ -1,5 +1,5 @@
-import { walkTreeNode, getRowIdentity } from '../util'
 import { ref, computed, watch, getCurrentInstance, unref } from 'vue'
+import { walkTreeNode, getRowIdentity } from '../util'
 
 import type { WatcherPropsData } from '.'
 import type { Table, TableProps } from '../table/defaults'
@@ -66,20 +66,30 @@ function useTree<T>(watcherData: WatcherPropsData<T>) {
     return res
   }
 
-  const updateTreeData = () => {
+  const updateTreeData = (
+    ifChangeExpandRowKeys = false,
+    ifExpandAll = instance.store?.states.defaultExpandAll.value
+  ) => {
     const nested = normalizedData.value
     const normalizedLazyNode_ = normalizedLazyNode.value
     const keys = Object.keys(nested)
     const newTreeData = {}
     if (keys.length) {
       const oldTreeData = unref(treeData)
-      const defaultExpandAll = instance.store?.states.defaultExpandAll.value
       const rootLazyRowKeys = []
       const getExpanded = (oldValue, key) => {
-        const included =
-          defaultExpandAll ||
-          (expandRowKeys.value && expandRowKeys.value.indexOf(key) !== -1)
-        return !!((oldValue && oldValue.expanded) || included)
+        if (ifChangeExpandRowKeys) {
+          if (expandRowKeys.value) {
+            return ifExpandAll || expandRowKeys.value.includes(key)
+          } else {
+            return !!(ifExpandAll || oldValue?.expanded)
+          }
+        } else {
+          const included =
+            ifExpandAll ||
+            (expandRowKeys.value && expandRowKeys.value.includes(key))
+          return !!(oldValue?.expanded || included)
+        }
       }
       // 合并 expanded 与 display，确保数据刷新后，状态不变
       keys.forEach((key) => {
@@ -124,8 +134,25 @@ function useTree<T>(watcherData: WatcherPropsData<T>) {
     instance.store?.updateTableScrollY()
   }
 
-  watch(() => normalizedData.value, updateTreeData)
-  watch(() => normalizedLazyNode.value, updateTreeData)
+  watch(
+    () => expandRowKeys.value,
+    () => {
+      updateTreeData(true)
+    }
+  )
+
+  watch(
+    () => normalizedData.value,
+    () => {
+      updateTreeData()
+    }
+  )
+  watch(
+    () => normalizedLazyNode.value,
+    () => {
+      updateTreeData()
+    }
+  )
 
   const updateTreeExpandKeys = (value: string[]) => {
     expandRowKeys.value = value

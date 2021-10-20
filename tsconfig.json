@@ -14,13 +14,9 @@
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
     "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "strict": true,
+    "skipLibCheck": true
   },
-  "exclude": [
-    "node_modules",
-    "**/__tests__",
-    "dist/**",
-    "packages/*/es",
-    "packages/*/lib"
-  ]
+  "exclude": ["node_modules", "**/__tests__", "dist/**"]
 }

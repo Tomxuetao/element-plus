@@ -188,7 +188,7 @@ import MonthTable from './basic-month-table.vue'
 import YearTable from './basic-year-table.vue'
 
 import type { PropType } from 'vue'
-import type { Dayjs, ConfigType } from 'dayjs'
+import type { ConfigType, Dayjs } from 'dayjs'
 import type { IDatePickerType } from '../date-picker.type'
 
 // todo
@@ -328,19 +328,13 @@ export default defineComponent({
       if (currentView.value === 'year') {
         const startYear = Math.floor(year.value / 10) * 10
         if (yearTranslation) {
-          return (
-            startYear +
-            ' ' +
-            yearTranslation +
-            ' - ' +
-            (startYear + 9) +
-            ' ' +
-            yearTranslation
-          )
+          return `${startYear} ${yearTranslation} - ${
+            startYear + 9
+          } ${yearTranslation}`
         }
-        return startYear + ' - ' + (startYear + 9)
+        return `${startYear} - ${startYear + 9}`
       }
-      return year.value + ' ' + yearTranslation
+      return `${year.value} ${yearTranslation}`
     })
 
     const handleShortcutClick = (shortcut) => {
@@ -518,9 +512,11 @@ export default defineComponent({
       }
     }
 
-    const isValidValue = (date_) => {
+    const isValidValue = (date: unknown) => {
       return (
-        date_.isValid() && (disabledDate ? !disabledDate(date_.toDate()) : true)
+        dayjs.isDayjs(date) &&
+        date.isValid() &&
+        (disabledDate ? !disabledDate(date.toDate()) : true)
       )
     }
 
