@@ -1,5 +1,151 @@
 ## Changelog
 
+### 1.2.0-beta.3
+
+_2021-11-09_
+
+#### Bug fixes
+
+- Components [el-cascader] empty children set leaf (#3758 by @btea)
+- Build fix types  (#4254 by @sxzz)
+- Components [el-checkbox] tabindex property doesn't work (#4286 by @undefined-degisn)
+- Style radio group set inline-block (#4255 by @btea)
+- Theme-chalk fix icon style in Menu component is wrong (#4302 by @undefined-degisn)
+- Side-effects (#4310 by @sxzz)
+
+#### Refactors
+
+- Components refactor rate
+- Components refactor result
+- Components [el-result] improve props
+- Components refactor row
+- Components [el-row] improve props
+- Components refactor radio
+
+### 1.2.0-beta.2
+
+_2021-11-05_
+
+#### Features
+
+- Components [el-tree] allow tree node to have customizable class (#3912 by @greper)
+- Components [el-color-picker] hex color with transparency (#3893 by @Alanscut)
+- Components el-teleport (#4186 by @JeremyWuuuuu)
+- Components [el-select-v2] mouse trigger scrollbar show/hide (#3722 by @btea)
+- Components [el-image] initialIndex (#4235 by @Alanscut)
+- Components [el-message] merge the same content messages(#3836 by @zhazhanitian) (#3988)
+- Docs add support for copying svg content (#4169 by @adaex)
+- 
+#### Bug fixes
+
+- Components [el-tree-v2] indent can not set zero (#3881 by @btea)
+- [el-date-picker] avoid click event error & fix cell props (#4134 by @msidolphin)
+- Components [el-tree] emptyText  empty string is invalid (#4135 by @imswk) (#4136)
+- Components [el-tree-v2] empty-text supports empty string & virtual list width become no required (#4144 by @msidolphin)
+- [el-transfer]modelvalue is not in original order (#4082 by @Alanscut)
+- Components el-loading spinner directive (#4133 by @adaex)
+- Components el-select-v2 empty icon (#4154 by @adaex)
+- Input suffix icon center by flex (#4159 by @YunYouJun)
+- Components [el-affix] listen resize (#3932 by @midcu)
+- Components [time-picker] am/pm mode avoid render redundant content (#4137 by @msidolphin)
+- Components [image-viewer] fix typo (#4183 by @btea)
+- Components input icon justify by flex (#4187 by @YunYouJun)
+- Docs fix typo (#4190 by @btea)
+- Style remove chinese comments in checkbox (#4189 by @YunYouJun)
+- Components el-teleport potential failure (#4197 by @JeremyWuuuuu)
+- Components view tag does not render (#4198 by @adaex)
+- Theme-chalk el-menu arrow icon style (#4230 by @adaex)
+- Components el-dropdown cannot be used with v-show (#4221 by @undefined-degisn)
+- Components [el-table] fixed mode layout misalignment (#4188 by @msidolphin)
+- Components empty icon component judgment (#4178 by @adaex)
+- [el-input]hidden input is not hidden (#4128 by @KawaiiZapic)
+- Components [el-cascader] search result switch not highlight (#4087 by @btea)
+- [el-date-picker] cannot change the time when provide default-time (#4228 by @msidolphin)
+- Components `h` function children parameter usage (#4238 by @adaex)
+- Components ensure table size affects inner selection (#3979 by @cokemine)
+- Components [el-table] development environment warning issues (#4167 by @msidolphin)
+- Components [el-select] first item hover status error (#3880 by @Alanscut)
+- Components [el-form] reset form validate error (#3759 by @btea)
+- Components [el-select] display false (#4036 by @Alanscut)
+- Fix el-input-number unexcepted text selecting when clicking buttons (#4191 by @KawaiiZapic)
+
+#### Refactors
+
+- Components elForm form rule & custom type (#3951 by @Otto-J)
+- Components [el-config-provider] improve componomponent  extendiability (#4175 by @msidolphin)
+- Docs use markdown-it instead of marked (#4239 by @YunYouJun)
+
+
+### 1.2.0-beta.1
+
+_2021-10-30_
+
+#### Breaking changes:
+
+- Please refer to: [1.2.0-beta.1 Breaking change](https://github.com/element-plus/element-plus/discussions/4060)
+
+#### Features
+
+- Use svg icons in components (#3492 by @adaex)
+- Remove font icon scss & font-path (#4074 by @YunYouJun)
+- Simplify build & support esm import (#4018 by @sxzz)
+- Components [el-popconfirm] adjust tag and style (#3981 by @btea)
+- Components add space between two characters in Chinese (#3992 by @cokemine)
+- Components el-switch add inline content support (#4091 by @adaex)
+- Add fit-input-width prop (#4088 by @kooriookami)
+- Components [el-date-picker] support customized cell content (#4078 by @msidolphin)
+- Components [el-message] & [el-notification] appendTo option added (#4012 by @codespikex)
+- Add translation for Bengali language (#3972 by @IbrahimAlKhalil)
+- Dev play add unplugin-vue-components (#3931 by @sxzz)
+- Dev play add @element-plus/icons (#4034 by @xiaoxian521)
+
+#### Bug fixes
+
+- Components select v-2 value-key seems not working #2904 (#3915 by @spx443812507)
+- Utils remove $ from util
+- Tag should support large size too (#3948 by @cbbfcd)
+- Components [el-affix] update method does not exist (#3996 by @Alanscut)
+- Components [el-input] disable button style error (#3989 by @Alanscut)
+- Docs doc language selector kept reversing (#3987 by @JeremyWuuuuu)
+- Components [el-select-v2] set a non-empty array value error (#3998 by @btea)
+- Docs docs-search-not-working (#4004 by @JeremyWuuuuu)
+- Docs translation missing (#4006 by @JeremyWuuuuu)
+- Type error
+- Components [el-icon] support string size (#3835 by @cn-troy)
+- Docs add extra field for frontmatter
+- Components button displays icon only (#4019 by @sxzz)
+- Docs adding title for components (#4025 by @JeremyWuuuuu)
+- Dev fix play auto import (#4031 by @sxzz)
+- Popover repeat when exist fixed column in table (#3394 by @Alanscut)
+- Components [el-date-picker] increase  width of  range separator (#4028 by @baboon-king)
+- Components [el-form-item] validate success does not return fields (#4001 by @msidolphin)
+- Hooks add type remove ts error (#4055 by @btea)
+- Components [el-input-number] add a type attribute (#4030 by @921)
+- Components fix add space in prod mode (#4062 by @cokemine)
+- Dev fix playground and docs alias (#4068 by @sxzz)
+- Components [el-form-item] align inline elements vertically (#4080 by @921)
+- Components [el-input] maxlength is not correct (#3969 by @Alanscut)
+- Components [el-page-header] icon size (#4085 by @adaex)
+- Components [el-menu] trigger hover, open and close events no work (#4077 by @xiaoxian521)
+- Deps update dependency axios to ^0.24.0 (#4102 by @renovate[bot])
+- Docs tree document error (#4115 by @JeremyWuuuuu)
+- Checkbox fix checkbox when modelvalue length less than min limit (#1745 by @cokemine)
+- Docs update readme local development file name (#4117 by @btea)
+- Build transform to es2018 syntax (#4090 by @sxzz)
+- Components [el-upload] request headers missing when headers is typeof Headers(#4043 by @wxyong) (#4045)
+- Components [el-input] input border (#4110 by @Alanscut)
+- Components upload headers add type judge (#4119 by @btea)
+- Components [el-cascader] can not use keyboard select node(#3254 by @imswk) (#3260)
+- Components [el-menu] icon style (#4122 by @imswk)
+
+#### Refactors
+
+- Components ElInputNumber (#3974 by @JeremyWuuuuu)
+- Components [el-message] change the name of stopTimer
+- Docs icon usage (#4057 by @adaex)
+- Componentes deprecate the icon font of some components (#4067 by @adaex)
+- Directives use util method replace judge firefox (#4086 by @btea)
+- Utils!: remove resize-observer-polyfill (#4058 by @sxzz)
 
 ### 1.1.0-beta.24
 

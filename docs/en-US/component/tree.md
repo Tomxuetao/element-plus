@@ -15,6 +15,8 @@ Basic tree structure.
 
 tree/basic
 
+:::
+
 ## Selectable
 
 Used for node selection.
@@ -68,6 +70,16 @@ The content of tree nodes can be customized, so you can add icons or buttons as 
 :::demo There are two ways to customize template for tree nodes: `render-content` and scoped slot. Use `render-content` to assign a render function that returns the content of tree nodes. See Vue's documentation for a detailed introduction of render functions. If you prefer scoped slot, you'll have access to `node` and `data` in the scope, standing for the TreeNode object and node data of the current node respectively. Note that the `render-content` demo can't run in jsfiddle because it doesn't support JSX syntax. In a real project, `render-content` will work if relevant dependencies are correctly configured.
 
 tree/customized-node
+
+:::
+
+## Custom node class
+
+The class of tree nodes can be customized
+
+:::demo. Use `props.class` to build class name of nodes.
+
+tree/custom-node-class
 
 :::
 
@@ -139,6 +151,7 @@ tree/draggable
 | children  | specify which node object is used as the node's subtree                       | string                        | —               | —       |
 | disabled  | specify which key of node object represents if node's checkbox is disabled    | boolean, function(data, node) | —               | —       |
 | isLeaf    | specify whether the node is a leaf node, only works when lazy load is enabled | boolean, function(data, node) | —               | —       |
+| class     | custom node class name                                                        | string, function(data, node)  | —               | —       |
 
 ## Method
 

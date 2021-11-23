@@ -7,7 +7,7 @@ lang: en-US
 
 Used to replace the browser's native scrollbar.
 
-<style lang="scss" scoped>
+<style lang="scss">
 .example-showcase {
   .el-scrollbar {
     .scrollbar-demo-item {
@@ -39,9 +39,6 @@ Used to replace the browser's native scrollbar.
         color: var(--el-color-danger);
       }
     }
-  }
-  .el-button {
-    margin-bottom: 20px;
   }
   .el-slider {
     margin-top: 20px;

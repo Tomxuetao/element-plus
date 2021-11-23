@@ -54,6 +54,14 @@ export const messageProps = buildProps({
     type: Number,
     default: 0,
   },
+  grouping: {
+    type: Boolean,
+    default: false,
+  },
+  repeatNum: {
+    type: Number,
+    default: 1,
+  },
 } as const)
 export type MessageProps = ExtractPropTypes<typeof messageProps>
 
@@ -62,7 +70,9 @@ export const messageEmits = {
 }
 export type MessageEmits = typeof messageEmits
 
-export type MessageOptions = Omit<MessageProps, 'id'>
+export type MessageOptions = Omit<MessageProps, 'id'> & {
+  appendTo?: HTMLElement | string
+}
 export type MessageOptionsTyped = Omit<MessageOptions, 'type'>
 
 export interface MessageHandle {

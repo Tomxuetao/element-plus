@@ -236,7 +236,9 @@ export default defineComponent({
       mouseInChild.value = false
       timeout?.()
       ;({ stop: timeout } = useTimeoutFn(
-        () => !mouseInChild.value && rootMenu.closeMenu(props.index),
+        () =>
+          !mouseInChild.value &&
+          rootMenu.closeMenu(props.index, indexPath.value),
         props.hideTimeout
       ))
 
@@ -299,7 +301,7 @@ export default defineComponent({
           {
             class: ['el-sub-menu__icon-arrow'],
           },
-          () => [subMenuTitleIcon.value]
+          { default: () => h(subMenuTitleIcon.value) }
         ),
       ]
 
