@@ -1,5 +1,6 @@
 import { watch, isRef, onScopeDispose } from 'vue'
 
+import { isClient } from '@vueuse/core'
 import getScrollBarWidth from '@element-plus/utils/scrollbar-width'
 import { throwError } from '@element-plus/utils/error'
 import {
@@ -23,6 +24,10 @@ export const useLockscreen = (trigger: Ref<boolean>) => {
       'You need to pass a ref param to this function'
     )
   }
+  if (!isClient || hasClass(document.body, 'el-popup-parent--hidden')) {
+    return
+  }
+
   let scrollBarWidth = 0
   let withoutHiddenClass = false
   let bodyPaddingRight = '0'

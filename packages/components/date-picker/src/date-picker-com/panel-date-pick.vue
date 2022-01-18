@@ -142,7 +142,7 @@
     >
       <el-button
         v-show="selectionMode !== 'dates'"
-        size="mini"
+        size="small"
         type="text"
         class="el-picker-panel__link-btn"
         @click="changeToNow"
@@ -151,7 +151,7 @@
       </el-button>
       <el-button
         plain
-        size="mini"
+        size="small"
         class="el-picker-panel__link-btn"
         @click="onConfirm"
       >
@@ -181,7 +181,8 @@ import {
   ArrowLeft,
   DArrowRight,
   ArrowRight,
-} from '@element-plus/icons'
+} from '@element-plus/icons-vue'
+import { TOOLTIP_INJECTION_KEY } from '@element-plus/components/tooltip'
 import DateTable from './basic-date-table.vue'
 import MonthTable from './basic-month-table.vue'
 import YearTable from './basic-year-table.vue'
@@ -228,11 +229,11 @@ export default defineComponent({
       validator: isValidDatePickType,
     },
   },
-  emits: ['pick', 'set-picker-option'],
+  emits: ['pick', 'set-picker-option', 'panel-change'],
   setup(props, ctx) {
     const { t, lang } = useLocale()
     const pickerBase = inject('EP_PICKER_BASE') as any
-
+    const popper = inject(TOOLTIP_INJECTION_KEY)
     const {
       shortcuts,
       disabledDate,
@@ -316,10 +317,12 @@ export default defineComponent({
     }
     const prevMonth_ = () => {
       innerDate.value = innerDate.value.subtract(1, 'month')
+      handlePanelChange('month')
     }
 
     const nextMonth_ = () => {
       innerDate.value = innerDate.value.add(1, 'month')
+      handlePanelChange('month')
     }
 
     const prevYear_ = () => {
@@ -328,6 +331,7 @@ export default defineComponent({
       } else {
         innerDate.value = innerDate.value.subtract(1, 'year')
       }
+      handlePanelChange('year')
     }
 
     const nextYear_ = () => {
@@ -336,6 +340,7 @@ export default defineComponent({
       } else {
         innerDate.value = innerDate.value.add(1, 'year')
       }
+      handlePanelChange('year')
     }
 
     const currentView = ref('date')
@@ -385,6 +390,13 @@ export default defineComponent({
       { immediate: true }
     )
 
+    watch(
+      () => currentView.value,
+      () => {
+        popper?.updatePopper()
+      }
+    )
+
     const hasShortcuts = computed(() => !!shortcuts.length)
 
     const handleMonthPick = (month) => {
@@ -394,6 +406,7 @@ export default defineComponent({
       } else {
         currentView.value = 'date'
       }
+      handlePanelChange('month')
     }
 
     const handleYearPick = (year) => {
@@ -404,6 +417,7 @@ export default defineComponent({
         innerDate.value = innerDate.value.year(year)
         currentView.value = 'month'
       }
+      handlePanelChange('year')
     }
 
     const showMonthPicker = () => {
@@ -630,6 +644,15 @@ export default defineComponent({
         ctx.emit('pick', result, true)
         break
       }
+    }
+
+    const handlePanelChange = (mode: 'month' | 'year') => {
+      ctx.emit(
+        'panel-change',
+        innerDate.value.toDate(),
+        mode,
+        currentView.value
+      )
     }
 
     ctx.emit('set-picker-option', ['isValidValue', isValidValue])

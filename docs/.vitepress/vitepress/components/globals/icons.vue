@@ -3,7 +3,7 @@ import { computed, ref } from 'vue'
 import { hyphenate } from '@vue/shared'
 import clipboardCopy from 'clipboard-copy'
 import { ElMessage } from 'element-plus'
-import * as Icons from '@element-plus/icons'
+import * as Icons from '@element-plus/icons-vue'
 import { useLang } from '../../composables/lang'
 import localeData from '../../../i18n/component/icons.json'
 
@@ -33,7 +33,7 @@ const copySvgIcon = async (name, refs) => {
   if (copyIcon.value) {
     await copyContent(`<el-icon><${hyphenate(name)} /></el-icon>`)
   } else {
-    const content = refs[name].querySelector('svg')?.outerHTML ?? ''
+    const content = refs[name]?.[0].querySelector('svg')?.outerHTML ?? ''
     await copyContent(content)
   }
 }
@@ -51,7 +51,7 @@ const copySvgIcon = async (name, refs) => {
   <ul class="demo-icon-list">
     <li
       v-for="component in Icons"
-      :key="component"
+      :key="component.name"
       :ref="component.name"
       class="icon-item"
       @click="copySvgIcon(component.name, $refs)"

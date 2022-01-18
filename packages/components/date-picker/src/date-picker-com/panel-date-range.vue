@@ -212,7 +212,7 @@
     <div v-if="showTime" class="el-picker-panel__footer">
       <el-button
         v-if="clearable"
-        size="mini"
+        size="small"
         type="text"
         class="el-picker-panel__link-btn"
         @click="handleClear"
@@ -221,7 +221,7 @@
       </el-button>
       <el-button
         plain
-        size="mini"
+        size="small"
         class="el-picker-panel__link-btn"
         :disabled="btnDisabled"
         @click="handleConfirm(false)"
@@ -251,7 +251,7 @@ import {
   ArrowLeft,
   DArrowRight,
   ArrowRight,
-} from '@element-plus/icons'
+} from '@element-plus/icons-vue'
 import DateTable from './basic-date-table.vue'
 
 import type { PropType } from 'vue'
@@ -285,7 +285,7 @@ export default defineComponent({
     },
   },
 
-  emits: ['pick', 'set-picker-option', 'calendar-change'],
+  emits: ['pick', 'set-picker-option', 'calendar-change', 'panel-change'],
 
   setup(props, ctx) {
     const { t, lang } = useLocale()
@@ -372,6 +372,7 @@ export default defineComponent({
       if (!props.unlinkPanels) {
         rightDate.value = leftDate.value.add(1, 'month')
       }
+      handlePanelChange('year')
     }
 
     const leftPrevMonth = () => {
@@ -379,6 +380,7 @@ export default defineComponent({
       if (!props.unlinkPanels) {
         rightDate.value = leftDate.value.add(1, 'month')
       }
+      handlePanelChange('month')
     }
 
     const rightNextYear = () => {
@@ -388,6 +390,7 @@ export default defineComponent({
       } else {
         rightDate.value = rightDate.value.add(1, 'year')
       }
+      handlePanelChange('year')
     }
 
     const rightNextMonth = () => {
@@ -397,22 +400,35 @@ export default defineComponent({
       } else {
         rightDate.value = rightDate.value.add(1, 'month')
       }
+      handlePanelChange('month')
     }
 
     const leftNextYear = () => {
       leftDate.value = leftDate.value.add(1, 'year')
+      handlePanelChange('year')
     }
 
     const leftNextMonth = () => {
       leftDate.value = leftDate.value.add(1, 'month')
+      handlePanelChange('month')
     }
 
     const rightPrevYear = () => {
       rightDate.value = rightDate.value.subtract(1, 'year')
+      handlePanelChange('year')
     }
 
     const rightPrevMonth = () => {
       rightDate.value = rightDate.value.subtract(1, 'month')
+      handlePanelChange('month')
+    }
+
+    const handlePanelChange = (mode: 'month' | 'year') => {
+      ctx.emit(
+        'panel-change',
+        [leftDate.value.toDate(), rightDate.value.toDate()],
+        mode
+      )
     }
 
     const enableMonthArrow = computed(() => {
