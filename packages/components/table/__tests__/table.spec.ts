@@ -1,6 +1,7 @@
 import { nextTick } from 'vue'
 import ElCheckbox from '@element-plus/components/checkbox'
 import { triggerEvent } from '@element-plus/test-utils'
+import { rAF } from '@element-plus/test-utils/tick'
 import ElTable from '../src/table.vue'
 import ElTableColumn from '../src/table-column/index'
 import { mount, getTestData } from './table-test-common'
@@ -9,13 +10,18 @@ import type { ComponentPublicInstance } from 'vue'
 
 const { CheckboxGroup: ElCheckboxGroup } = ElCheckbox
 
-async function sleep(time: number) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(undefined)
-    }, time)
-  })
-}
+jest.mock('lodash-unified', () => {
+  return {
+    ...(jest.requireActual('lodash-unified') as Record<string, any>),
+    debounce: jest.fn((fn) => {
+      fn.cancel = jest.fn()
+      fn.flush = jest.fn()
+      return fn
+    }),
+  }
+})
+
+jest.useFakeTimers()
 
 describe('Table.vue', () => {
   describe('rendering data is correct', () => {
@@ -158,6 +164,15 @@ describe('Table.vue', () => {
       const wrapper = createTable('max-height="134"')
       await nextTick()
       expect(wrapper.attributes('style')).toContain('max-height: 134px')
+      wrapper.unmount()
+    })
+
+    it('maxHeight uses special units', async () => {
+      const wrapper = createTable('max-height="60vh"')
+      await nextTick()
+      expect(
+        wrapper.find('.el-table__body-wrapper').attributes('style')
+      ).toContain('max-height: calc(60vh - 44px - 44px);')
       wrapper.unmount()
     })
 
@@ -335,7 +350,7 @@ describe('Table.vue', () => {
       filter.parentNode.removeChild(filter)
     })
 
-    fit('click filter', async () => {
+    it('click filter', async () => {
       const btn = wrapper.find('.el-table__column-filter-trigger')
 
       btn.trigger('click')
@@ -845,13 +860,16 @@ describe('Table.vue', () => {
     })
     await nextTick()
     const tr = wrapper.find('.el-table__body-wrapper tbody tr')
-    tr.trigger('mouseenter')
-
-    await sleep(50)
+    await tr.trigger('mouseenter')
+    await nextTick()
+    await rAF()
+    await nextTick()
     expect(tr.classes()).toContain('hover-row')
-    tr.trigger('mouseleave')
+    await tr.trigger('mouseleave')
+    await nextTick()
 
-    await sleep(50)
+    await rAF()
+    await nextTick()
     expect(tr.classes()).not.toContain('hover-row')
     wrapper.unmount()
   })
@@ -1357,5 +1375,30 @@ describe('Table.vue', () => {
       const firstCellSpanAfterHide = wrapper.find('.el-table__body tr td span')
       expect(firstCellSpanAfterHide.classes().includes('release')).toBeTruthy()
     })
+  })
+
+  it('when tableLayout is auto', async () => {
+    const wrapper = mount({
+      components: {
+        ElTable,
+        ElTableColumn,
+      },
+      template: `
+      <el-table :data="testData" table-layout="auto">
+        <el-table-column prop="id" />
+        <el-table-column prop="name" label="片名" />
+        <el-table-column prop="release" label="发行日期" />
+        <el-table-column prop="director" label="导演" />
+        <el-table-column prop="runtime" label="时长（分）" />
+      </el-table>
+      `,
+      created() {
+        this.testData = getTestData()
+      },
+    })
+    await nextTick()
+    expect(wrapper.find('.el-table__body thead').exists()).toBeTruthy()
+    expect(wrapper.find('.el-table__body colgroup col').exists()).toBeFalsy()
+    expect(wrapper.find('.el-table__body tbody').exists()).toBeTruthy()
   })
 })
