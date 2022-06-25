@@ -1,46 +1,57 @@
-import { computed, ref, watch, nextTick, onMounted } from 'vue'
-import { useTimeoutFn, isClient } from '@vueuse/core'
+// @ts-nocheck
+import {
+  computed,
+  getCurrentInstance,
+  nextTick,
+  onMounted,
+  ref,
+  watch,
+} from 'vue'
+import { isClient, useTimeoutFn } from '@vueuse/core'
 
 import {
+  defaultNamespace,
+  useGlobalConfig,
+  useId,
   useLockscreen,
-  useRestoreActive,
-  useModal,
   useZIndex,
 } from '@element-plus/hooks'
 import { UPDATE_MODEL_EVENT } from '@element-plus/constants'
-import { isNumber } from '@element-plus/utils'
+import { addUnit } from '@element-plus/utils'
 
 import type { CSSProperties, Ref, SetupContext } from 'vue'
 import type { DialogEmits, DialogProps } from './dialog'
 
 export const useDialog = (
   props: DialogProps,
-  { emit }: SetupContext<DialogEmits>,
   targetRef: Ref<HTMLElement | undefined>
 ) => {
+  const instance = getCurrentInstance()!
+  const emit = instance.emit as SetupContext<DialogEmits>['emit']
+  const { nextZIndex } = useZIndex()
+
   let lastPosition = ''
+  const titleId = useId()
+  const bodyId = useId()
   const visible = ref(false)
   const closed = ref(false)
   const rendered = ref(false) // when desctroyOnClose is true, we initialize it as false vise versa
-  const { nextZIndex } = useZIndex()
   const zIndex = ref(props.zIndex || nextZIndex())
 
   let openTimer: (() => void) | undefined = undefined
   let closeTimer: (() => void) | undefined = undefined
 
-  const normalizeWidth = computed(() =>
-    isNumber(props.width) ? `${props.width}px` : props.width
-  )
+  const namespace = useGlobalConfig('namespace', defaultNamespace)
 
   const style = computed<CSSProperties>(() => {
     const style: CSSProperties = {}
-    const varPrefix = `--el-dialog`
+    const varPrefix = `--${namespace.value}-dialog`
     if (!props.fullscreen) {
       if (props.top) {
         style[`${varPrefix}-margin-top`] = props.top
       }
       if (props.width) {
-        style[`${varPrefix}-width`] = normalizeWidth.value
+        style[`${varPrefix}-width`] = addUnit(props.width)
       }
     }
     return style
@@ -74,7 +85,6 @@ export const useDialog = (
   }
 
   function close() {
-    // if (this.willClose && !this.willClose()) return;
     openTimer?.()
     closeTimer?.()
 
@@ -85,13 +95,13 @@ export const useDialog = (
     }
   }
 
-  function hide(shouldCancel: boolean) {
-    if (shouldCancel) return
-    closed.value = true
-    visible.value = false
-  }
-
   function handleClose() {
+    function hide(shouldCancel?: boolean) {
+      if (shouldCancel) return
+      closed.value = true
+      visible.value = false
+    }
+
     if (props.beforeClose) {
       props.beforeClose(hide)
     } else {
@@ -106,13 +116,7 @@ export const useDialog = (
   }
 
   function doOpen() {
-    if (!isClient) {
-      return
-    }
-
-    // if (props.willOpen?.()) {
-    //  return
-    // }
+    if (!isClient) return
     visible.value = true
   }
 
@@ -120,20 +124,23 @@ export const useDialog = (
     visible.value = false
   }
 
+  function onOpenAutoFocus() {
+    emit('openAutoFocus')
+  }
+
+  function onCloseAutoFocus() {
+    emit('closeAutoFocus')
+  }
+
   if (props.lockScroll) {
     useLockscreen(visible)
   }
 
-  if (props.closeOnPressEscape) {
-    useModal(
-      {
-        handleClose,
-      },
-      visible
-    )
+  function onCloseRequested() {
+    if (props.closeOnPressEscape) {
+      handleClose()
+    }
   }
-
-  useRestoreActive(visible)
 
   watch(
     () => props.modelValue,
@@ -188,6 +195,11 @@ export const useDialog = (
     onModalClick,
     close,
     doClose,
+    onOpenAutoFocus,
+    onCloseAutoFocus,
+    onCloseRequested,
+    titleId,
+    bodyId,
     closed,
     style,
     rendered,

@@ -25,9 +25,10 @@
 </template>
 
 <script lang="ts">
+// @ts-nocheck
 import { computed, defineComponent, provide } from 'vue'
 import { isValidComponentSize } from '@element-plus/utils'
-import { useSize, useNamespace } from '@element-plus/hooks'
+import { useNamespace, useSize } from '@element-plus/hooks'
 import DescriptionsRow from './descriptions-row.vue'
 import { elDescriptionsKey } from './token'
 
@@ -73,7 +74,7 @@ export default defineComponent({
 
     const descriptionKls = computed(() => [
       ns.b(),
-      ns.is(ns.m(descriptionsSize.value), !!descriptionsSize.value),
+      ns.m(descriptionsSize.value),
     ])
 
     const flattedChildren = (children) => {

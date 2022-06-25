@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { provide, ref } from 'vue'
 import { addClass, removeClass } from '@element-plus/utils'
 import { useNamespace } from '@element-plus/hooks'
@@ -47,7 +48,7 @@ export function useDragNodeHandler({ props, ctx, el$, dropIndicator$, store }) {
       // setData is required for draggable to work in FireFox
       // the content has to be '' so dragging a node out of the tree won't open a new tab in FireFox
       event.dataTransfer.setData('text/plain', '')
-    } catch (e) {}
+    } catch {}
     dragState.value.draggingNode = treeNode
     ctx.emit('node-drag-start', treeNode.node, event)
   }

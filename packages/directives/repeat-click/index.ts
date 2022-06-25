@@ -1,6 +1,7 @@
+// @ts-nocheck
 import { on, once } from '@element-plus/utils'
 
-import type { ObjectDirective, DirectiveBinding } from 'vue'
+import type { DirectiveBinding, ObjectDirective } from 'vue'
 
 export default {
   beforeMount(el: HTMLElement, binding: DirectiveBinding) {

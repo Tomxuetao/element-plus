@@ -8,8 +8,11 @@
   @include with-bg;
   position: relative;
   border-bottom: 1px solid var(--border-color);
-  padding: 0 12px 0 24px;
   height: var(--header-height);
+  padding: 0 12px 0 24px;
+  backdrop-filter: saturate(50%) blur(8px);
+  background: var(--bg-color-filter);
+  -webkit-backdrop-filter: saturate(50%) blur(8px);
   top: 0;
 
   @include respond-to('md') {
@@ -20,17 +23,25 @@
     padding: 0 32px;
   }
 
-  .container {
+  .header-container {
     display: flex;
     justify-content: space-between;
     margin: 0 auto;
-    max-width: var(--app-max-width);
 
     .content {
       display: flex;
       justify-content: flex-end;
       align-items: center;
       flex-grow: 1;
+    }
+
+    @include respond-to('xxl') {
+      max-width: calc(var(--vp-screen-max-width));
+    }
+
+    @include respond-to('max') {
+      // 36 = 2 * 18 for each side.
+      max-width: calc(var(--vp-screen-max-width));
     }
   }
 
@@ -46,6 +57,7 @@
   left: 0;
   position: relative;
   z-index: var(--nav-z-index);
+
   @include respond-to('lg') {
     position: fixed;
     width: 100%;
@@ -55,9 +67,11 @@
 .menu + .appearance {
   margin-left: 8px;
 }
+
 .menu + .social-links {
   margin-left: 12px;
 }
+
 .appearance + .social-links {
   margin-left: 12px;
 }

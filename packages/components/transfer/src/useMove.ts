@@ -1,11 +1,12 @@
+// @ts-nocheck
 import { CHANGE_EVENT, UPDATE_MODEL_EVENT } from '@element-plus/constants'
 
 import type { ComputedRef } from 'vue'
 import type {
-  TransferProps,
-  TransferCheckedState,
   DataItem,
   Key,
+  TransferCheckedState,
+  TransferProps,
 } from './transfer'
 
 export const useMove = (

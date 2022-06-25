@@ -1,7 +1,8 @@
+// @ts-nocheck
 import { computed, getCurrentInstance, watch } from 'vue'
 
 import type { ExtractPropTypes } from 'vue'
-import type { TransferPanelState, Key } from './transfer'
+import type { Key, TransferPanelState } from './transfer'
 
 export const CHECKED_CHANGE_EVENT = 'checked-change'
 

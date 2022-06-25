@@ -1,17 +1,18 @@
+// @ts-nocheck
 import { hasOwn } from '@element-plus/utils'
 import Node from './node'
 import { getNodeKey } from './util'
 
 import type {
-  TreeKey,
-  TreeData,
-  TreeStoreNodesMap,
-  LoadFunction,
   FilterNodeMethodFunction,
-  TreeOptionProps,
-  TreeStoreOptions,
   FilterValue,
+  LoadFunction,
+  TreeData,
+  TreeKey,
   TreeNodeData,
+  TreeOptionProps,
+  TreeStoreNodesMap,
+  TreeStoreOptions,
 } from '../tree.type'
 
 export default class TreeStore {
@@ -157,7 +158,7 @@ export default class TreeStore {
   _initDefaultCheckedNode(node: Node): void {
     const defaultCheckedKeys = this.defaultCheckedKeys || []
 
-    if (defaultCheckedKeys.indexOf(node.key) !== -1) {
+    if (defaultCheckedKeys.includes(node.key)) {
       node.setChecked(true, !this.checkStrictly)
     }
   }
@@ -286,7 +287,7 @@ export default class TreeStore {
     for (let i = 0, j = allNodes.length; i < j; i++) {
       const node = allNodes[i]
       const nodeKey = node.data[key].toString()
-      const checked = keys.indexOf(nodeKey) > -1
+      const checked = keys.includes(nodeKey)
       if (!checked) {
         if (node.checked && !cache[nodeKey]) {
           node.setChecked(false, false)

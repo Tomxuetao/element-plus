@@ -23,13 +23,23 @@ dialog/basic-usage
 
 :::
 
-## Customizations
+## Customized Content
 
-The content of Dialog can be anything, even a table or a form. This example shows how to use Element Plus Table and Form with Dialog。
+The content of Dialog can be anything, even a table or a form. This example shows how to use Element Plus Table and Form with Dialog.
 
 :::demo
 
-dialog/customizations
+dialog/customization-content
+
+:::
+
+## Customized Header
+
+The `header` slot can be used to customize the area where the title is displayed. In order to maintain accessibility, use the `title` attribute in addition to using this slot, or use the `titleId` slot property to specify which element should be read out as the dialog title.
+
+:::demo
+
+dialog/customization-header
 
 :::
 
@@ -110,17 +120,20 @@ When using `modal` = false, please make sure that `append-to-body` was set to **
 
 ## Slots
 
-| Name   | Description                  |
-| ------ | ---------------------------- |
-| —      | content of Dialog            |
-| title  | content of the Dialog title  |
-| footer | content of the Dialog footer |
+| Name              | Description                                                                                           |
+| ----------------- | ----------------------------------------------------------------------------------------------------- |
+| —                 | content of Dialog                                                                                     |
+| header            | content of the Dialog header; Replacing this removes the title, but does not remove the close button. |
+| title(deprecated) | Works the same as the header slot. Use that instead.                                                  |
+| footer            | content of the Dialog footer                                                                          |
 
 ## Events
 
-| Event Name | Description                                     | Parameters |
-| ---------- | ----------------------------------------------- | ---------- |
-| open       | triggers when the Dialog opens                  | —          |
-| opened     | triggers when the Dialog opening animation ends | —          |
-| close      | triggers when the Dialog closes                 | —          |
-| closed     | triggers when the Dialog closing animation ends | —          |
+| Event Name       | Description                                      | Parameters |
+| ---------------- | ------------------------------------------------ | ---------- |
+| open             | triggers when the Dialog opens                   | —          |
+| opened           | triggers when the Dialog opening animation ends  | —          |
+| close            | triggers when the Dialog closes                  | —          |
+| closed           | triggers when the Dialog closing animation ends  | —          |
+| open-auto-focus  | triggers after Dialog opens and content focused  | —          |
+| close-auto-focus | triggers after Dialog closed and content focused | —          |

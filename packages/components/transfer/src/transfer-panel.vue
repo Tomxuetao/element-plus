@@ -22,8 +22,7 @@
         clearable
         @mouseenter="inputHover = true"
         @mouseleave="inputHover = false"
-      >
-      </el-input>
+      />
       <el-checkbox-group
         v-show="!hasNoMatch && data.length > 0"
         v-model="checked"
@@ -47,18 +46,19 @@
       </p>
     </div>
     <p v-if="hasFooter" :class="ns.be('panel', 'footer')">
-      <slot></slot>
+      <slot />
     </p>
   </div>
 </template>
 
 <script lang="ts">
+// @ts-nocheck
 import { computed, defineComponent, reactive, toRefs } from 'vue'
 import { useLocale, useNamespace } from '@element-plus/hooks'
 import { ElCheckbox, ElCheckboxGroup } from '@element-plus/components/checkbox'
 import ElInput from '@element-plus/components/input'
 import { Search } from '@element-plus/icons-vue'
-import { useCheck, useCheckProps, CHECKED_CHANGE_EVENT } from './useCheck'
+import { CHECKED_CHANGE_EVENT, useCheck, useCheckProps } from './useCheck'
 
 export default defineComponent({
   name: 'ElTransferPanel',

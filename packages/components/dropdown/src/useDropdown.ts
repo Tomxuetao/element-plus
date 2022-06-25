@@ -1,5 +1,6 @@
-import { inject, computed, ref } from 'vue'
-import { generateId, on, addClass } from '@element-plus/utils'
+// @ts-nocheck
+import { computed, inject, ref } from 'vue'
+import { addClass, generateId, on } from '@element-plus/utils'
 import { EVENT_CODE } from '@element-plus/constants'
 import { useNamespace } from '@element-plus/hooks'
 import type { Nullable } from '@element-plus/utils'
@@ -103,7 +104,7 @@ export const initDropdownDomEvent = (
     menuItems.value = dropdownElm.value.querySelectorAll(
       "[tabindex='-1']"
     ) as unknown as HTMLButtonElement[]
-    menuItemsArray.value = [].slice.call(menuItems.value)
+    menuItemsArray.value = Array.from(menuItems.value)
 
     initEvent()
     initAria()
