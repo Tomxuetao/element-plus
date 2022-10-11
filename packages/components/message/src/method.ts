@@ -20,7 +20,6 @@ import type {
   Message,
   MessageFn,
   MessageHandler,
-  MessageInstance,
   MessageOptions,
   MessageParams,
   MessageParamsNormalized,
@@ -42,7 +41,9 @@ const normalizeOptions = (params?: MessageParams) => {
     ...options,
   }
 
-  if (isString(normalized.appendTo)) {
+  if (!normalized.appendTo) {
+    normalized.appendTo = document.body
+  } else if (isString(normalized.appendTo)) {
     let appendTo = document.querySelector<HTMLElement>(normalized.appendTo)
 
     // should fallback to default value with a warning
@@ -82,7 +83,7 @@ const createMessage = (
 
   const props = {
     ...options,
-    zIndex: options.zIndex ?? nextZIndex(),
+    zIndex: nextZIndex() + options.zIndex,
     id,
     onClose: () => {
       userOnClose?.()
@@ -101,7 +102,11 @@ const createMessage = (
     MessageConstructor,
     props,
     isFunction(props.message) || isVNode(props.message)
-      ? { default: props.message }
+      ? {
+          default: isFunction(props.message)
+            ? props.message
+            : () => props.message,
+        }
       : null
   )
   vnode.appContext = context || message._context
@@ -110,14 +115,13 @@ const createMessage = (
   // instances will remove this item when close function gets called. So we do not need to worry about it.
   appendTo.appendChild(container.firstElementChild!)
 
-  const vm = vnode.component!.proxy as MessageInstance
+  const vm = vnode.component!
+
   const handler: MessageHandler = {
     // instead of calling the onClose function directly, setting this value so that we can have the full lifecycle
     // for out component, so that all closing steps will not be skipped.
     close: () => {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore `visible` from defineExpose
-      vm.visible = false
+      vm.exposed!.visible.value = false
     },
   }
 

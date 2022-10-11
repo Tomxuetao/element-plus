@@ -1,7 +1,7 @@
 <template>
   <el-tooltip
     ref="popperRef"
-    v-model:visible="suggestionVisible"
+    :visible="suggestionVisible"
     :placement="placement"
     :fallback-placements="['bottom-start', 'top-start']"
     :popper-class="[ns.e('popper'), popperClass]"
@@ -60,7 +60,10 @@
       <div
         ref="regionRef"
         :class="[ns.b('suggestion'), ns.is('loading', suggestionLoading)]"
-        :style="{ minWidth: dropdownWidth, outline: 'none' }"
+        :style="{
+          [fitInputWidth ? 'width' : 'minWidth']: dropdownWidth,
+          outline: 'none',
+        }"
         role="region"
       >
         <el-scrollbar
@@ -121,12 +124,11 @@ import type { StyleValue } from 'vue'
 import type { TooltipInstance } from '@element-plus/components/tooltip'
 import type { InputInstance } from '@element-plus/components/input'
 
+const COMPONENT_NAME = 'ElAutocomplete'
 defineOptions({
-  name: 'ElAutocomplete',
+  name: COMPONENT_NAME,
   inheritAttrs: false,
 })
-
-const COMPONENT_NAME = 'ElAutocomplete'
 
 const props = defineProps(autocompleteProps)
 const emit = defineEmits(autocompleteEmits)
@@ -141,6 +143,7 @@ const regionRef = ref<HTMLElement>()
 const popperRef = ref<TooltipInstance>()
 const listboxRef = ref<HTMLElement>()
 
+let readonly = false
 let ignoreFocusEvent = false
 const suggestions = ref<AutocompleteData>([])
 const highlightedIndex = ref(-1)
@@ -246,7 +249,8 @@ const handleFocus = (evt: FocusEvent) => {
 
   activated.value = true
   emit('focus', evt)
-  if (props.triggerOnFocus) {
+  // fix https://github.com/element-plus/element-plus/issues/8278
+  if (props.triggerOnFocus && !readonly) {
     debouncedGetData(String(props.modelValue))
   }
 }
@@ -290,6 +294,10 @@ const close = () => {
 
 const focus = () => {
   inputRef.value?.focus()
+}
+
+const blur = () => {
+  inputRef.value?.blur()
 }
 
 const handleSelect = async (item: any) => {
@@ -348,6 +356,8 @@ onMounted(() => {
     'aria-activedescendant',
     `${listboxId.value}-item-${highlightedIndex.value}`
   )
+  // get readonly attr
+  readonly = (inputRef.value as any).ref!.hasAttribute('readonly')
 })
 
 defineExpose({
@@ -369,6 +379,8 @@ defineExpose({
   handleKeyEnter,
   /** @description focus the input element */
   focus,
+  /** @description blur the input element */
+  blur,
   /** @description close suggestion */
   close,
   /** @description highlight an item in a suggestion */

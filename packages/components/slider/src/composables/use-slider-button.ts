@@ -3,7 +3,6 @@ import { debounce } from 'lodash-unified'
 import { EVENT_CODE, UPDATE_MODEL_EVENT } from '@element-plus/constants'
 import { sliderContextKey } from '@element-plus/tokens'
 import type { CSSProperties, ComputedRef, Ref, SetupContext } from 'vue'
-import type { TooltipInstance } from '@element-plus/components/tooltip'
 import type { SliderProps } from '../slider'
 import type {
   SliderButtonEmits,
@@ -18,7 +17,8 @@ const useTooltip = (
   formatTooltip: Ref<SliderProps['formatTooltip']>,
   showTooltip: Ref<SliderProps['showTooltip']>
 ) => {
-  const tooltip = ref<TooltipInstance>()
+  // TODO any is temporary, replace with `TooltipInstance` later
+  const tooltip = ref<any>()
 
   const tooltipVisible = ref(false)
 
@@ -228,8 +228,8 @@ export const useSliderButton = (
         }
         if (!initData.isClick) {
           setPosition(initData.newPosition)
-          emitChange()
         }
+        emitChange()
       }, 0)
       window.removeEventListener('mousemove', onDragging)
       window.removeEventListener('touchmove', onDragging)
@@ -251,7 +251,10 @@ export const useSliderButton = (
     let value =
       steps * lengthPerStep * (max.value - min.value) * 0.01 + min.value
     value = Number.parseFloat(value.toFixed(precision.value))
-    emit(UPDATE_MODEL_EVENT, value)
+
+    if (value !== props.modelValue) {
+      emit(UPDATE_MODEL_EVENT, value)
+    }
 
     if (!initData.dragging && props.modelValue !== initData.oldValue) {
       initData.oldValue = props.modelValue
@@ -259,7 +262,7 @@ export const useSliderButton = (
 
     await nextTick()
     initData.dragging && displayTooltip()
-    tooltip.value.updatePopper()
+    tooltip.value!.updatePopper()
   }
 
   watch(
@@ -270,6 +273,7 @@ export const useSliderButton = (
   )
 
   return {
+    disabled,
     button,
     tooltip,
     tooltipVisible,
