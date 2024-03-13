@@ -1,6 +1,9 @@
 export default {
   name: 'ru',
   el: {
+    breadcrumb: {
+      label: 'Breadcrumb', // to be translated
+    },
     colorpicker: {
       confirm: 'OK',
       clear: 'Очистить',
@@ -102,6 +105,11 @@ export default {
       clearFilter: 'Все',
       sumText: 'Сумма',
     },
+    tour: {
+      next: 'Далее',
+      previous: 'Назад',
+      finish: 'Завершить',
+    },
     tree: {
       emptyText: 'Нет данных',
     },
@@ -122,6 +130,11 @@ export default {
     popconfirm: {
       confirmButtonText: 'OK',
       cancelButtonText: 'Отмена',
+    },
+    carousel: {
+      leftArrow: 'Carousel arrow left', // to be translated
+      rightArrow: 'Carousel arrow right', // to be translated
+      indicator: 'Carousel switch to index {index}', // to be translated
     },
   },
 }
