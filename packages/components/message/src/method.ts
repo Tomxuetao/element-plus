@@ -1,4 +1,4 @@
-import { createVNode, render } from 'vue'
+import { createVNode, isVNode, render } from 'vue'
 import {
   debugWarn,
   isBoolean,
@@ -7,7 +7,6 @@ import {
   isFunction,
   isNumber,
   isString,
-  isVNode,
 } from '@element-plus/utils'
 import { messageConfig } from '@element-plus/components/config-provider'
 import MessageConstructor from './message.vue'
@@ -136,7 +135,7 @@ const createMessage = (
     // instead of calling the onClose function directly, setting this value so that we can have the full lifecycle
     // for out component, so that all closing steps will not be skipped.
     close: () => {
-      vm.exposed!.visible.value = false
+      vm.exposed!.close()
     },
   }
 
@@ -189,7 +188,10 @@ messageTypes.forEach((type) => {
 })
 
 export function closeAll(type?: messageType): void {
-  for (const instance of instances) {
+  // Create a copy of instances to avoid modification during iteration
+  const instancesToClose = [...instances]
+
+  for (const instance of instancesToClose) {
     if (!type || type === instance.props.type) {
       instance.handler.close()
     }

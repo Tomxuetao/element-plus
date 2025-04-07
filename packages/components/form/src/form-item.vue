@@ -57,6 +57,7 @@ import {
   addUnit,
   ensureArray,
   getProp,
+  isArray,
   isBoolean,
   isFunction,
   isString,
@@ -231,7 +232,7 @@ const getFilteredRule = (trigger: string) => {
     rules
       .filter((rule) => {
         if (!rule.trigger || !trigger) return true
-        if (Array.isArray(rule.trigger)) {
+        if (isArray(rule.trigger)) {
           return rule.trigger.includes(trigger)
         } else {
           return rule.trigger === trigger
@@ -293,7 +294,7 @@ const doValidate = async (rules: RuleItem[]): Promise<true> => {
       return true as const
     })
     .catch((err: FormValidateFailure) => {
-      onValidationFailed(err as FormValidateFailure)
+      onValidationFailed(err)
       return Promise.reject(err)
     })
 }
