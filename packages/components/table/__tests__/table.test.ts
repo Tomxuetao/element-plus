@@ -9,10 +9,11 @@ import ElTable from '../src/table.vue'
 import ElTableColumn from '../src/table-column'
 import {
   doubleWait,
-  getMutliRowTestData,
+  getMultiRowTestData,
   getTestData,
   mount,
 } from './table-test-common'
+
 import type { VueWrapper } from '@vue/test-utils'
 import type { ComponentPublicInstance } from 'vue'
 
@@ -192,10 +193,89 @@ describe('Table.vue', () => {
       wrapper.unmount()
     })
 
+    it('updates height and maxHeight sequentially without recursive error', async () => {
+      const errorSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      const wrapper = createTable(':height="height" :max-height="maxHeight"', {
+        data() {
+          return {
+            height: 200,
+            maxHeight: 400,
+          }
+        },
+      })
+
+      await doubleWait()
+      wrapper.vm.maxHeight = 500
+      await doubleWait()
+      wrapper.vm.height = 250
+      await doubleWait()
+
+      wrapper.unmount()
+      const hasRecursiveError = errorSpy.mock.calls.some((call) =>
+        call.some(
+          (msg) =>
+            typeof msg === 'string' &&
+            msg.includes('Maximum recursive updates exceeded')
+        )
+      )
+      errorSpy.mockRestore()
+      expect(hasRecursiveError).toBe(false)
+    })
+
     it('stripe', async () => {
       const wrapper = createTable('stripe')
       await doubleWait()
       expect(wrapper.classes()).toContain('el-table--striped')
+      wrapper.unmount()
+    })
+
+    it('should display stripe correctly when row is expanded and closed', async () => {
+      const tableData = [
+        {
+          id: '1',
+          children: [
+            {
+              id: '1-1',
+            },
+          ],
+        },
+        {
+          id: '2',
+        },
+      ]
+      const wrapper = mount({
+        components: {
+          ElTable,
+          ElTableColumn,
+        },
+        template: `
+          <el-table
+            :data="tableData"
+            row-key="id"
+            stripe
+            default-expand-all
+          >
+            <el-table-column prop="id" label="id" sortable />
+          </el-table>
+        `,
+        data() {
+          return {
+            tableData,
+          }
+        },
+      })
+      await doubleWait()
+      const expandTrigger = wrapper.find('.el-table__expand-icon')
+      const rows = wrapper.findAll('.el-table__row')
+      expect(rows.length).toBe(3)
+      expect(rows[0].classes()).not.toContain('el-table__row--striped')
+      expect(rows[1].classes()).toContain('el-table__row--striped')
+      expect(rows[2].classes()).not.toContain('el-table__row--striped')
+      expandTrigger.trigger('click')
+      await doubleWait()
+      expect(rows[0].classes()).not.toContain('el-table__row--striped')
+      expect(rows[1].classes()).not.toContain('el-table__row--striped')
+      expect(rows[2].classes()).toContain('el-table__row--striped')
       wrapper.unmount()
     })
 
@@ -303,6 +383,93 @@ describe('Table.vue', () => {
       await doubleWait()
       expect(tr.classes()).not.toContain('current-row')
       expect(rows[1].classes()).toContain('current-row')
+      wrapper.unmount()
+    })
+
+    it('current-change event should pass correct oldCurrentRow when using current-row-key', async () => {
+      const currentChangeCalls: Array<[any, any]> = []
+      const wrapper = mount({
+        components: {
+          ElTable,
+          ElTableColumn,
+        },
+        template: `
+        <el-table 
+          :data="testData" 
+          row-key="id" 
+          highlight-current-row 
+          :current-row-key="currentRowKey"
+          @current-change="handleCurrentChange">
+          <el-table-column prop="name" label="片名" />
+          <el-table-column prop="release" label="发行日期" />
+          <el-table-column prop="director" label="导演" />
+          <el-table-column prop="runtime" label="时长（分）" />
+        </el-table>
+      `,
+        created() {
+          this.testData = getTestData()
+        },
+        data() {
+          return { currentRowKey: null }
+        },
+        methods: {
+          handleCurrentChange(currentRow, oldCurrentRow) {
+            currentChangeCalls.push([currentRow, oldCurrentRow])
+          },
+        },
+      })
+
+      await doubleWait()
+
+      // 第一次设置 current-row-key: oldCurrentRow 应该为 null
+      wrapper.vm.currentRowKey = 1
+      await doubleWait()
+      expect(currentChangeCalls.length).toBe(1)
+      expect(currentChangeCalls[0][0]).toMatchObject({
+        id: 1,
+        name: 'Toy Story',
+      })
+      expect(currentChangeCalls[0][1]).toBeNull()
+
+      // 从第1行切到第2行: oldCurrentRow 应该是第1行的数据
+      wrapper.vm.currentRowKey = 2
+      await doubleWait()
+      expect(currentChangeCalls.length).toBe(2)
+      expect(currentChangeCalls[1][0]).toMatchObject({
+        id: 2,
+        name: "A Bug's Life",
+      })
+      expect(currentChangeCalls[1][1]).toMatchObject({
+        id: 1,
+        name: 'Toy Story',
+      })
+
+      // 从第2行切到第3行: oldCurrentRow 应该是第2行的数据
+      wrapper.vm.currentRowKey = 3
+      await doubleWait()
+      expect(currentChangeCalls.length).toBe(3)
+      expect(currentChangeCalls[2][0]).toMatchObject({
+        id: 3,
+        name: 'Toy Story 2',
+      })
+      expect(currentChangeCalls[2][1]).toMatchObject({
+        id: 2,
+        name: "A Bug's Life",
+      })
+
+      // 从第3行切到第4行: oldCurrentRow 应该是第3行的数据
+      wrapper.vm.currentRowKey = 4
+      await doubleWait()
+      expect(currentChangeCalls.length).toBe(4)
+      expect(currentChangeCalls[3][0]).toMatchObject({
+        id: 4,
+        name: 'Monsters, Inc.',
+      })
+      expect(currentChangeCalls[3][1]).toMatchObject({
+        id: 3,
+        name: 'Toy Story 2',
+      })
+
       wrapper.unmount()
     })
   })
@@ -1271,7 +1438,7 @@ describe('Table.vue', () => {
       `,
       data() {
         return {
-          testData: getMutliRowTestData(),
+          testData: getMultiRowTestData(),
         }
       },
       methods: {
@@ -1720,6 +1887,175 @@ describe('Table.vue', () => {
       expect(wrapper.findAll('.el-table__row').length).toEqual(8)
       expect(spy.mock.calls[0][0]).toBeInstanceOf(Object)
       expect(spy.mock.calls[0][1]).toBeTruthy()
+
+      const iconTr = expandIcon.element.closest('tr')
+      expect(iconTr.classList).toContain('el-table__row--level-0')
+      const firstChildRow = iconTr.nextElementSibling
+      expect(firstChildRow.classList).toContain('el-table__row--level-1')
+      const indent = firstChildRow.querySelector('.el-table__indent')
+      expect(indent).toBeTruthy()
+      expect(indent.style.paddingLeft).toEqual('16px')
+    })
+
+    it('tree-props & default-expand-all with dynamic data', async () => {
+      wrapper = mount({
+        components: {
+          ElTable,
+          ElTableColumn,
+        },
+        template: `
+          <el-table
+            :data="testData" default-expand-all row-key="id"
+            >
+            <el-table-column prop="name" label="片名" />
+            <el-table-column prop="release" label="发行日期" />
+            <el-table-column prop="director" label="导演" />
+            <el-table-column prop="runtime" label="时长（分）" />
+          </el-table>
+        `,
+        data() {
+          return {
+            testData: [],
+          }
+        },
+        methods: {
+          setData() {
+            this.testData = [
+              {
+                id: 1,
+                name: 'Toy Story',
+                release: '1995-11-22',
+                director: 'John Lasseter',
+                runtime: 80,
+                children: [
+                  {
+                    id: 11,
+                    name: 'Toy Story',
+                    release: '1995-11-22',
+                    director: 'John Lasseter',
+                    runtime: 80,
+                  },
+                  {
+                    id: 12,
+                    name: 'Toy Story',
+                    release: '1995-11-22',
+                    director: 'John Lasseter',
+                    runtime: 80,
+                  },
+                ],
+              },
+              {
+                id: 2,
+                name: "A Bug's Life",
+                release: '1998-11-25',
+                director: 'John Lasseter',
+                runtime: 95,
+                children: [
+                  {
+                    id: 21,
+                    name: "A Bug's Life",
+                    release: '1998-11-25',
+                    director: 'John Lasseter',
+                    runtime: 95,
+                  },
+                  {
+                    id: 22,
+                    name: "A Bug's Life",
+                    release: '1998-11-25',
+                    director: 'John Lasseter',
+                    runtime: 95,
+                  },
+                ],
+              },
+            ]
+          },
+        },
+      })
+      await doubleWait()
+      let childRows = wrapper.findAll('.el-table__row--level-1')
+      expect(childRows.length).toEqual(0)
+      wrapper.vm.setData()
+      await doubleWait()
+
+      childRows = wrapper.findAll('.el-table__row--level-1')
+      childRows.forEach((item) => {
+        expect(item.attributes('style')).toBeUndefined()
+      })
+    })
+
+    it('tree-props & update expandRowKeys', async () => {
+      wrapper = mount({
+        components: {
+          ElTable,
+          ElTableColumn,
+        },
+        template: `
+          <el-table :data="testData" row-key="release" :expand-row-keys="expandRowKeys">
+            <el-table-column prop="name" label="片名" />
+            <el-table-column prop="release" label="发行日期" />
+            <el-table-column prop="edit" label="修改">
+              <template #default="{row}">
+                <button class="edit" @click="row.release =Date.now()">click</button>
+              </template>
+            </el-table-column>
+          </el-table>
+        `,
+        data() {
+          const testData = [
+            {
+              id: 1,
+              name: 'Toy Story',
+              release: '1995-11-22',
+              children: [
+                { id: 11, name: 'Toy Story Session 1' },
+                { id: 12, name: 'Toy Story Session 2' },
+              ],
+            },
+            {
+              id: 2,
+              name: 'The Matrix',
+              release: '1999-3-31',
+              director: 'The Wachowskis',
+              children: [
+                { id: 21, name: "The Matrix' Session 1" },
+                { id: 22, name: "The Matrix' Session 2" },
+              ],
+            },
+          ]
+          return {
+            testData,
+            expandRowKeys: ['1995-11-22'],
+          }
+        },
+        methods: {
+          update(list: string[]) {
+            this.expandRowKeys = list
+          },
+        },
+      })
+
+      await doubleWait()
+      let childRows = wrapper.findAll('.el-table__row--level-1')
+      expect(childRows.length).toEqual(4)
+      childRows.forEach((item, index) => {
+        if (index < 2) {
+          expect(item.attributes('style')).toBeUndefined()
+        } else {
+          expect(item.attributes('style')).toContain('display: none')
+        }
+      })
+      wrapper.vm.update([])
+      await doubleWait()
+      childRows = wrapper.findAll('.el-table__row--level-1')
+      childRows.forEach((item) => {
+        expect(item.attributes('style')).toContain('display: none')
+      })
+      wrapper.vm.update(['1995-11-22', '1999-3-31'])
+      await doubleWait()
+      childRows = wrapper.findAll('.el-table__row--level-1')
+      childRows.forEach((item) => {
+        expect(item.attributes('style')).toContain('')
+      })
     })
 
     it('expand-row-keys & toggleRowExpansion', async () => {
@@ -1907,6 +2243,52 @@ describe('Table.vue', () => {
       wrapper.findAll('.el-checkbox')[0].trigger('click')
       await doubleWait()
       expect(wrapper.vm.selected.length).toEqual(getTestData().length + 2)
+    })
+
+    it('a11y', async () => {
+      wrapper = mount({
+        components: {
+          ElTableColumn,
+          ElTable,
+        },
+        template: `
+          <el-table :data="testData" row-key="release">
+            <el-table-column prop="name" label="片名" />
+            <el-table-column prop="release" label="发行日期" />
+            <el-table-column prop="director" label="导演" />
+            <el-table-column prop="runtime" label="时长（分）" />
+          </el-table>
+        `,
+        data() {
+          const testData = getTestData() as any
+          testData[1].children = [
+            {
+              name: "A Bug's Life copy 1",
+              release: '1998-11-25-1',
+              director: 'John Lasseter',
+              runtime: 95,
+            },
+            {
+              name: "A Bug's Life copy 2",
+              release: '1998-11-25-2',
+              director: 'John Lasseter',
+              runtime: 95,
+            },
+          ]
+          return {
+            testData,
+          }
+        },
+      })
+      await doubleWait()
+      const button = wrapper.find('.el-table__expand-icon')
+      expect(button.attributes('aria-label')).toBe('Expand this row')
+      expect(button.attributes('aria-expanded')).toBe('false')
+
+      await button.trigger('click')
+      await doubleWait()
+      expect(button.attributes('aria-label')).toBe('Collapse this row')
+      expect(button.attributes('aria-expanded')).toBe('true')
     })
   })
 
@@ -2167,6 +2549,166 @@ describe('Table.vue', () => {
     mockCellRect2.mockRestore()
   })
 
+  it('should not show tooltip when cell content is empty', async () => {
+    const testData = [
+      {
+        id: 1,
+        date: '2016-05-02',
+        name: '', // 空值 - 不应该显示 tooltip
+        address: 'No. 189, Grove St, Los Angeles',
+      },
+      {
+        id: 2,
+        date: '2016-05-04',
+        name: '   ', // 只有空格 - 不应该显示 tooltip
+        address: 'No. 189, Grove St, Los Angeles',
+      },
+      {
+        id: 3,
+        date: '2016-05-01',
+        name: 'wangxiaohu',
+        address: 'No. 189, Grove St, Los Angeles',
+        children: [
+          {
+            id: 31,
+            date: '2016-05-01',
+            name: 'wangxiaohu',
+            address: 'No. 189, Grove St, Los Angeles',
+          },
+          {
+            id: 32,
+            date: '2016-05-01',
+            name: 'wangxiaohu',
+            address: 'No. 189, Grove St, Los Angeles',
+          },
+        ],
+      },
+      {
+        id: 4,
+        date: '2016-05-03',
+        name: 'wangxiaohu',
+        address: 'No. 189, Grove St, Los Angeles',
+      },
+    ]
+
+    const mockRangeRect = vi
+      .spyOn(Range.prototype, 'getBoundingClientRect')
+      .mockReturnValue({
+        width: 150,
+        height: 30,
+      } as DOMRect)
+
+    const wrapper = mount({
+      components: {
+        ElTable,
+        ElTableColumn,
+      },
+      template: `
+           <el-table
+              :data="testData"
+              style="width: 100%; margin-bottom: 20px"
+              row-key="id"
+              border
+              default-expand-all
+            >
+              <el-table-column
+                class-name="empty_cell"
+                align="right"
+                width="60"
+                label="行号"
+                :show-overflow-tooltip="true"
+              >
+                <template v-slot>
+                  <span></span>
+                </template>
+              </el-table-column>
+              <el-table-column prop="date" label="Date" sortable />
+              <el-table-column
+                :show-overflow-tooltip="true"
+                width="20"
+                prop="address"
+                label="address"
+                sortable
+              />
+            </el-table>
+      `,
+      data() {
+        return {
+          testData,
+        }
+      },
+    })
+    await doubleWait()
+    const emptyCells = wrapper.findAll('.el-table__body-wrapper .empty_cell')
+    expect(emptyCells.length).toBeGreaterThan(0)
+    for (const cell of emptyCells) {
+      const cellElement = cell.find('.cell')
+      expect(cellElement.exists()).toBe(true)
+      const mockCellRect = vi
+        .spyOn(cellElement.element, 'getBoundingClientRect')
+        .mockReturnValue({
+          width: 100,
+          height: 30,
+        } as DOMRect)
+      await cell.trigger('mouseenter')
+      await rAF()
+      expect(wrapper.find('.el-popper').exists()).toBeFalsy()
+      mockCellRect.mockRestore()
+    }
+    mockRangeRect.mockRestore()
+    wrapper.unmount()
+  })
+
+  it('should cleanup tooltip dynamically', async () => {
+    const mockRangeRect = vi
+      .spyOn(Range.prototype, 'getBoundingClientRect')
+      .mockReturnValue({
+        width: 150,
+        height: 30,
+      } as DOMRect)
+
+    const wrapper = mount({
+      components: {
+        ElTable,
+        ElTableColumn,
+      },
+      template: `
+        <el-table :data="testData">
+          <el-table-column :show-overflow-tooltip="showOverflowTooltip" class-name="overflow_tooltip" prop="name" label="name"/>
+        </el-table>
+      `,
+
+      data() {
+        return {
+          testData: getTestData(),
+          showOverflowTooltip: true,
+        }
+      },
+    })
+
+    await doubleWait()
+    const tr = wrapper.findAll('.overflow_tooltip')
+    const mockCellRect = vi
+      .spyOn(tr[1].find('.cell').element, 'getBoundingClientRect')
+      .mockReturnValue({
+        width: 100,
+        height: 30,
+      } as DOMRect)
+    await tr[1].trigger('mouseenter')
+    await rAF()
+    expect(wrapper.find('.el-popper').exists()).toBe(true)
+    await wrapper.setData({ showOverflowTooltip: false })
+    await tr[1].trigger('mouseleave')
+    await rAF()
+    await tr[1].trigger('mouseenter')
+    await rAF()
+    expect(wrapper.find('.el-popper').exists()).toBe(false)
+
+    mockRangeRect.mockRestore()
+    mockCellRect.mockRestore()
+    wrapper.unmount()
+  })
+
   it('use-tooltip-formatter', async () => {
     const testData = getTestData() as any
     const mockRangeRect = vi
@@ -2263,5 +2805,34 @@ describe('Table.vue', () => {
     )
 
     mockRangeRect.mockRestore()
+  })
+
+  it('should dynamically update show-overflow-tooltip via root table level', async () => {
+    const wrapper = mount({
+      components: {
+        ElTable,
+        ElTableColumn,
+      },
+
+      template: `
+    <el-table :data="testData" :show-overflow-tooltip="showOverflowTooltip">
+      <el-table-column props="name" label="name"/>
+      <el-table-column prop="director" label="director" />
+      <el-table-column prop="runtime" label="runtime" />
+    </el-table>
+  `,
+
+      data() {
+        return {
+          testData: getTestData(),
+          showOverflowTooltip: false,
+        }
+      },
+    })
+
+    await doubleWait()
+    expect(wrapper.find('div.cell.el-tooltip').exists()).toBe(false)
+    await wrapper.setProps({ showOverflowTooltip: true })
+    expect(wrapper.find('div.cell.el-tooltip').exists()).toBe(true)
   })
 })

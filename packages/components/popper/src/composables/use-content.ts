@@ -1,4 +1,12 @@
-import { computed, inject, onMounted, ref, unref, watch } from 'vue'
+import {
+  computed,
+  inject,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  unref,
+  watch,
+} from 'vue'
 import { isUndefined } from 'lodash-unified'
 import { usePopper } from '@element-plus/hooks'
 import { POPPER_INJECTION_KEY } from '../constants'
@@ -17,7 +25,7 @@ export const usePopperContent = (props: PopperContentProps) => {
   )!
 
   const arrowRef = ref<HTMLElement>()
-  const arrowOffset = ref<number>()
+  const arrowOffset = computed(() => props.arrowOffset)
 
   const eventListenerModifier = computed(() => {
     return {
@@ -61,15 +69,21 @@ export const usePopperContent = (props: PopperContentProps) => {
   const { attributes, state, styles, update, forceUpdate, instanceRef } =
     usePopper(computedReference, contentRef, options)
 
-  watch(instanceRef, (instance) => (popperInstanceRef.value = instance))
+  watch(instanceRef, (instance) => (popperInstanceRef.value = instance), {
+    flush: 'sync',
+  })
 
   onMounted(() => {
     watch(
-      () => unref(computedReference)?.getBoundingClientRect(),
+      () => unref(computedReference)?.getBoundingClientRect?.(),
       () => {
         update()
       }
     )
+  })
+
+  onBeforeUnmount(() => {
+    popperInstanceRef.value = undefined
   })
 
   return {

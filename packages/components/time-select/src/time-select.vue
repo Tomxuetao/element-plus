@@ -12,6 +12,8 @@
     :filterable="editable"
     :empty-values="emptyValues"
     :value-on-clear="valueOnClear"
+    :popper-class="popperClass"
+    :popper-style="popperStyle"
     @update:model-value="(event) => $emit(UPDATE_MODEL_EVENT, event)"
     @change="(event) => $emit(CHANGE_EVENT, event)"
     @blur="(event) => $emit('blur', event)"
@@ -42,9 +44,10 @@ import { useFormDisabled } from '@element-plus/components/form'
 import ElIcon from '@element-plus/components/icon'
 import { useLocale, useNamespace } from '@element-plus/hooks'
 import { CHANGE_EVENT, UPDATE_MODEL_EVENT } from '@element-plus/constants'
-
-import { timeSelectProps } from './time-select'
+import { CircleClose, Clock } from '@element-plus/icons-vue'
 import { compareTime, formatTime, nextTime, parseTime } from './utils'
+
+import type { TimeSelectProps } from './time-select'
 
 dayjs.extend(customParseFormat)
 
@@ -56,7 +59,21 @@ defineOptions({
 
 defineEmits([CHANGE_EVENT, 'blur', 'focus', 'clear', UPDATE_MODEL_EVENT])
 
-const props = defineProps(timeSelectProps)
+const props = withDefaults(defineProps<TimeSelectProps>(), {
+  format: 'HH:mm',
+  disabled: undefined,
+  editable: true,
+  effect: 'light',
+  clearable: true,
+  start: '09:00',
+  end: '18:00',
+  step: '00:30',
+  prefixIcon: () => Clock,
+  clearIcon: () => CircleClose,
+  popperClass: '',
+  valueOnClear: undefined,
+  popperStyle: undefined,
+})
 
 const nsInput = useNamespace('input')
 const select = ref<typeof ElSelect>()
@@ -135,11 +152,11 @@ const focus = () => {
 
 defineExpose({
   /**
-   * @description focus the Input component
+   * @description blur the Input component
    */
   blur,
   /**
-   * @description blur the Input component
+   * @description focus the Input component
    */
   focus,
 })

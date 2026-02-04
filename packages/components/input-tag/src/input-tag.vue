@@ -9,15 +9,16 @@
     <div v-if="slots.prefix" :class="ns.e('prefix')">
       <slot name="prefix" />
     </div>
-    <div :class="innerKls">
+    <div ref="innerRef" :class="innerKls">
       <el-tag
-        v-for="(item, index) in modelValue"
+        v-for="(item, index) in showTagList"
         :key="index"
         :size="tagSize"
         :closable="closable"
         :type="tagType"
         :effect="tagEffect"
         :draggable="closable && draggable"
+        :style="tagStyle"
         disable-transitions
         @close="handleRemoveTag(index)"
         @dragstart="(event: DragEvent) => handleDragStart(event, index)"
@@ -29,6 +30,46 @@
           {{ item }}
         </slot>
       </el-tag>
+      <el-tooltip
+        v-if="collapseTags && modelValue && modelValue.length > maxCollapseTags"
+        ref="tagTooltipRef"
+        :disabled="!collapseTagsTooltip"
+        :fallback-placements="['bottom', 'top', 'right', 'left']"
+        :effect="effect"
+        placement="bottom"
+      >
+        <template #default>
+          <div ref="collapseItemRef" :class="ns.e('collapse-tag')">
+            <el-tag
+              :closable="false"
+              :size="tagSize"
+              :type="tagType"
+              :effect="tagEffect"
+              disable-transitions
+            >
+              + {{ modelValue.length - maxCollapseTags }}
+            </el-tag>
+          </div>
+        </template>
+        <template #content>
+          <div :class="ns.e('input-tag-list')">
+            <el-tag
+              v-for="(item, index) in collapseTagList"
+              :key="index"
+              :size="tagSize"
+              :closable="closable"
+              :type="tagType"
+              :effect="tagEffect"
+              disable-transitions
+              @close="handleRemoveTag(index + maxCollapseTags)"
+            >
+              <slot name="tag" :value="item" :index="index + maxCollapseTags">
+                {{ item }}
+              </slot>
+            </el-tag>
+          </div>
+        </template>
+      </el-tooltip>
       <div :class="ns.e('input-wrapper')">
         <input
           :id="inputId"
@@ -52,6 +93,7 @@
           @compositionend="handleCompositionEnd"
           @input="handleInput"
           @keydown="handleKeydown"
+          @keyup="handleKeyup"
         />
         <span
           ref="calculatorRef"
@@ -74,7 +116,7 @@
         @mousedown.prevent="NOOP"
         @click="handleClear"
       >
-        <circle-close />
+        <component :is="clearIcon" />
       </el-icon>
       <el-icon
         v-if="validateState && validateIcon && needStatusIcon"
@@ -91,14 +133,15 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, useSlots } from 'vue'
-import { CircleClose } from '@element-plus/icons-vue'
+import { computed, markRaw, useSlots } from 'vue'
 import { useAttrs, useCalcInputWidth } from '@element-plus/hooks'
 import { NOOP, ValidateComponentsMap } from '@element-plus/utils'
+import { CircleClose } from '@element-plus/icons-vue'
+import ElTooltip from '@element-plus/components/tooltip'
 import ElIcon from '@element-plus/components/icon'
 import ElTag from '@element-plus/components/tag'
 import { useFormItem, useFormItemInputId } from '@element-plus/components/form'
-import { inputTagEmits, inputTagProps } from './input-tag'
+import { inputTagEmits } from './input-tag'
 import {
   useDragTag,
   useHovering,
@@ -106,12 +149,28 @@ import {
   useInputTagDom,
 } from './composables'
 
+import type { InputTagProps } from './input-tag'
+
 defineOptions({
   name: 'ElInputTag',
   inheritAttrs: false,
 })
 
-const props = defineProps(inputTagProps)
+const props = withDefaults(defineProps<InputTagProps>(), {
+  tagType: 'info',
+  tagEffect: 'light',
+  effect: 'light',
+  trigger: 'Enter',
+  delimiter: '',
+  clearIcon: markRaw(CircleClose),
+  disabled: undefined,
+  validateEvent: true,
+  id: undefined,
+  tabindex: 0,
+  autocomplete: 'off',
+  saveOnBlur: true,
+  maxCollapseTags: 1,
+})
 const emit = defineEmits(inputTagEmits)
 
 const attrs = useAttrs()
@@ -128,6 +187,7 @@ const validateIcon = computed(() => {
 const {
   inputRef,
   wrapperRef,
+  tagTooltipRef,
   isFocused,
   inputValue,
   size,
@@ -135,9 +195,12 @@ const {
   placeholder,
   closable,
   disabled,
+  showTagList,
+  collapseTagList,
   handleDragged,
   handleInput,
   handleKeydown,
+  handleKeyup,
   handleRemoveTag,
   handleClear,
   handleCompositionStart,
@@ -163,6 +226,9 @@ const {
   innerKls,
   showClear,
   showSuffix,
+  tagStyle,
+  collapseItemRef,
+  innerRef,
 } = useInputTagDom({
   props,
   hovering,

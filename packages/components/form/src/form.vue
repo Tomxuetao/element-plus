@@ -1,20 +1,22 @@
 <template>
-  <form :class="formClasses">
+  <form ref="formRef" :class="formClasses">
     <slot />
   </form>
 </template>
 
 <script lang="ts" setup>
-import { computed, provide, reactive, toRefs, watch } from 'vue'
-import { debugWarn, isFunction } from '@element-plus/utils'
+import { computed, provide, reactive, ref, toRefs, watch } from 'vue'
+import { has } from 'lodash-unified'
+import { debugWarn, getProp, isFunction } from '@element-plus/utils'
 import { useNamespace } from '@element-plus/hooks'
 import { useFormSize } from './hooks'
 import { formContextKey } from './constants'
-import { formEmits, formProps } from './form'
+import { formEmits } from './form'
 import { filterFields, useFormLabelWidth } from './utils'
 
 import type { ValidateFieldsError } from 'async-validator'
 import type { Arrayable } from '@element-plus/utils'
+import type { FormProps } from './form'
 import type {
   FormContext,
   FormItemContext,
@@ -27,10 +29,19 @@ const COMPONENT_NAME = 'ElForm'
 defineOptions({
   name: COMPONENT_NAME,
 })
-const props = defineProps(formProps)
+const props = withDefaults(defineProps<FormProps>(), {
+  labelPosition: 'right',
+  requireAsteriskPosition: 'left',
+  labelWidth: '',
+  labelSuffix: '',
+  showMessage: true,
+  validateOnRuleChange: true,
+  scrollIntoViewOptions: true,
+})
 const emit = defineEmits(formEmits)
 
-const fields: FormItemContext[] = []
+const formRef = ref<HTMLElement>()
+const fields = reactive<FormItemContext[]>([])
 
 const formSize = useFormSize()
 const ns = useNamespace('form')
@@ -38,8 +49,6 @@ const formClasses = computed(() => {
   const { labelPosition, inline } = props
   return [
     ns.b(),
-    // todo: in v2.2.0, we can remove default
-    // in fact, remove it doesn't affect the final style
     ns.m(formSize.value || 'default'),
     {
       [ns.m(`label-${labelPosition}`)]: labelPosition,
@@ -49,7 +58,7 @@ const formClasses = computed(() => {
 })
 
 const getField: FormContext['getField'] = (prop) => {
-  return fields.find((field) => field.prop === prop)
+  return filterFields(fields, [prop])[0]
 }
 
 const addField: FormContext['addField'] = (field) => {
@@ -60,6 +69,32 @@ const removeField: FormContext['removeField'] = (field) => {
   if (field.prop) {
     fields.splice(fields.indexOf(field), 1)
   }
+}
+
+const setInitialValues: FormContext['setInitialValues'] = (
+  initModel: Partial<typeof props.model>
+) => {
+  if (!props.model) {
+    debugWarn(COMPONENT_NAME, 'model is required for setInitialValues to work.')
+    return
+  }
+  if (!initModel) {
+    debugWarn(
+      COMPONENT_NAME,
+      'initModel is required for setInitialValues to work.'
+    )
+    return
+  }
+  fields.forEach((field) => {
+    if (field.prop) {
+      // Check if the property path actually exists in initModel
+      // This allows setting undefined/null values while skipping non-existent properties
+      if (has(initModel, field.prop)) {
+        const initValue = getProp(initModel, field.prop).value
+        field.setInitialValue(initValue)
+      }
+    }
+  })
 }
 
 const resetFields: FormContext['resetFields'] = (properties = []) => {
@@ -109,7 +144,7 @@ const doValidateField = async (
   for (const field of fields) {
     try {
       await field.validate('')
-      if (field.validateState === 'error') field.resetField()
+      if (field.validateState === 'error' && !field.error) field.resetField()
     } catch (fields) {
       validationErrors = {
         ...validationErrors,
@@ -126,9 +161,10 @@ const validateField: FormContext['validateField'] = async (
   modelProps = [],
   callback
 ) => {
+  let result = false
   const shouldThrow = !isFunction(callback)
   try {
-    const result = await doValidateField(modelProps)
+    result = await doValidateField(modelProps)
     // When result is false meaning that the fields are not validatable
     if (result === true) {
       await callback?.(result)
@@ -140,15 +176,20 @@ const validateField: FormContext['validateField'] = async (
     const invalidFields = e as ValidateFieldsError
 
     if (props.scrollToError) {
-      scrollToField(Object.keys(invalidFields)[0])
+      // form-item may be dynamically rendered based on the judgment conditions, and the order in invalidFields is uncertain.
+      // Therefore, the first form field with an error is determined by directly looking for the rendered element.
+      if (formRef.value) {
+        const formItem = formRef.value.querySelector(`.${ns.b()}-item.is-error`)
+        formItem?.scrollIntoView(props.scrollIntoViewOptions)
+      }
     }
-    await callback?.(false, invalidFields)
+    !result && (await callback?.(false, invalidFields))
     return shouldThrow && Promise.reject(invalidFields)
   }
 }
 
 const scrollToField = (prop: FormItemProp) => {
-  const field = filterFields(fields, prop)[0]
+  const field = getField(prop)
   if (field) {
     field.$el?.scrollIntoView(props.scrollIntoViewOptions)
   }
@@ -176,6 +217,7 @@ provide(
     getField,
     addField,
     removeField,
+    setInitialValues,
 
     ...useFormLabelWidth(),
   })
@@ -203,8 +245,16 @@ defineExpose({
    */
   scrollToField,
   /**
+   * @description Get a field context.
+   */
+  getField,
+  /**
    * @description All fields context.
    */
   fields,
+  /**
+   * @description Set initial values for form fields. When `resetFields` is called, fields will reset to these values. Only fields present in `initModel` will be updated.
+   */
+  setInitialValues,
 })
 </script>

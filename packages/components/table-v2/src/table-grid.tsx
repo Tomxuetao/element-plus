@@ -2,6 +2,8 @@ import {
   computed,
   defineComponent,
   inject,
+  nextTick,
+  onActivated,
   provide,
   ref,
   unref,
@@ -13,7 +15,7 @@ import {
 } from '@element-plus/components/virtual-list'
 import { isNumber, isObject } from '@element-plus/utils'
 import { Header } from './components'
-import { TableV2InjectionKey } from './tokens'
+import { TABLE_V2_GRID_INJECTION_KEY, TableV2InjectionKey } from './tokens'
 import { tableV2GridProps } from './grid'
 import { sum } from './utils'
 
@@ -112,7 +114,18 @@ const useTableGrid = (props: TableV2GridProps) => {
   }
 
   function scrollToRow(row: number, strategy: ScrollStrategy) {
-    unref(bodyRef)?.scrollToItem(row, 1, strategy)
+    const body = unref(bodyRef)
+    if (!body) return
+
+    const prevScrollLeft = scrollLeft.value
+
+    body.scrollToItem(row, 0, strategy)
+
+    if (prevScrollLeft) {
+      scrollTo({
+        scrollLeft: prevScrollLeft,
+      })
+    }
   }
 
   function forceUpdate() {
@@ -173,7 +186,13 @@ const TableGrid = defineComponent({
       scrollLeft,
     } = useTableGrid(props)
 
-    provide('tableV2GridScrollLeft', scrollLeft)
+    provide(TABLE_V2_GRID_INJECTION_KEY, scrollLeft)
+
+    onActivated(async () => {
+      await nextTick()
+      const scrollTop = bodyRef.value?.states.scrollTop
+      scrollTop && scrollToTop(Math.round(scrollTop) + 1)
+    })
 
     expose({
       forceUpdate,

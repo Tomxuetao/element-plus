@@ -17,6 +17,7 @@
 
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue'
+
 import type { ScrollbarInstance } from 'element-plus'
 
 type Arrayable<T> = T | T[]
@@ -33,7 +34,7 @@ onMounted(() => {
 const inputSlider = (value: Arrayable<number>) => {
   scrollbarRef.value!.setScrollTop(value as number)
 }
-const scroll = ({ scrollTop }) => {
+const scroll = ({ scrollTop }: { scrollTop: number }) => {
   value.value = scrollTop
 }
 const formatTooltip = (value: number) => `${value} px`

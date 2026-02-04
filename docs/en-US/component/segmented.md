@@ -69,7 +69,7 @@ segmented/custom-content
 
 ## Custom Style
 
-Set custom styles using CSS varibles.
+Set custom styles using CSS variables.
 
 :::demo
 
@@ -81,24 +81,24 @@ segmented/custom-style
 
 ### Attributes
 
-| Name                  | Description                                    | Type                                           | Default    |
-|-----------------------|------------------------------------------------|------------------------------------------------|------------|
-| model-value / v-model | binding value                                  | ^[string] / ^[number] / ^[boolean]             | —          |
-| options               | data of the options                            | ^[array]`Option[]`                             | []         |
-| props ^(2.9.8)        | configuration options, see the following table | ^[object]                                      | —          |
-| size                  | size of component                              | ^[enum]`'' \| 'large' \| 'default' \| 'small'` | ''         |
-| block                 | fit width of parent content                    | ^[boolean]                                     | —          |
-| disabled              | whether segmented is disabled                  | ^[boolean]                                     | false      |
-| validate-event        | whether to trigger form validation             | ^[boolean]                                     | true       |
-| name                  | native `name` attribute                        | ^[string]                                      | —          |
-| id                    | native `id` attribute                          | ^[string]                                      | —          |
-| aria-label ^(a11y)    | native `aria-label` attribute                  | ^[string]                                      | —          |
-| direction ^(2.8.7)    | display direction                              | ^[enum]`'horizontal' \| 'vertical'`            | horizontal |
+| Name                     | Description                                    | Type                                           | Default    |
+| ------------------------ | ---------------------------------------------- | ---------------------------------------------- | ---------- |
+| model-value / v-model    | binding value                                  | ^[string] / ^[number] / ^[boolean]             | —          |
+| options                  | data of the options                            | ^[array]`Option[]`                             | []         |
+| [props](#props) ^(2.9.8) | configuration options, see the following table | ^[object]                                      | —          |
+| size                     | size of component                              | ^[enum]`'' \| 'large' \| 'default' \| 'small'` | ''         |
+| block                    | fit width of parent content                    | ^[boolean]                                     | false      |
+| disabled                 | whether segmented is disabled                  | ^[boolean]                                     | false      |
+| validate-event           | whether to trigger form validation             | ^[boolean]                                     | true       |
+| name                     | native `name` attribute                        | ^[string]                                      | —          |
+| id                       | native `id` attribute                          | ^[string]                                      | —          |
+| aria-label ^(a11y)       | native `aria-label` attribute                  | ^[string]                                      | —          |
+| direction ^(2.8.7)       | display direction                              | ^[enum]`'horizontal' \| 'vertical'`            | horizontal |
 
 ### props
 
 | Attribute | Description                                                     | Type      | Default  |
-|-----------|-----------------------------------------------------------------|-----------|----------|
+| --------- | --------------------------------------------------------------- | --------- | -------- |
 | value     | specify which key of node object is used as the node's value    | ^[string] | value    |
 | label     | specify which key of node object is used as the node's label    | ^[string] | label    |
 | disabled  | specify which key of node object is used as the node's disabled | ^[string] | disabled |
@@ -106,13 +106,13 @@ segmented/custom-style
 ### Events
 
 | Name   | Description                                                                   | Type                            |
-|--------|-------------------------------------------------------------------------------|---------------------------------|
+| ------ | ----------------------------------------------------------------------------- | ------------------------------- |
 | change | triggers when the selected value changes, the param is current selected value | ^[Function]`(val: any) => void` |
 
 ### Slots
 
 | Name    | Description     | Type                        |
-|---------|-----------------|-----------------------------|
+| ------- | --------------- | --------------------------- |
 | default | option renderer | ^[object]`{ item: Option }` |
 
 ## Type Declarations

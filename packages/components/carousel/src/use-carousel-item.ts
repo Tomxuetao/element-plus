@@ -1,8 +1,7 @@
 import {
   getCurrentInstance,
   inject,
-  onMounted,
-  onUnmounted,
+  onBeforeUnmount,
   reactive,
   ref,
   unref,
@@ -12,7 +11,7 @@ import { CAROUSEL_ITEM_NAME, carouselContextKey } from './constants'
 
 import type { CarouselItemProps } from './carousel-item'
 
-export const useCarouselItem = (props: CarouselItemProps) => {
+export const useCarouselItem = (props: Required<CarouselItemProps>) => {
   const carouselContext = inject(carouselContextKey)!
   // instance
   const instance = getCurrentInstance()!
@@ -133,26 +132,26 @@ export const useCarouselItem = (props: CarouselItemProps) => {
     }
   }
 
-  // lifecycle
-  onMounted(() => {
-    carouselContext.addItem({
-      props,
-      states: reactive({
-        hover,
-        translate,
-        scale,
-        active,
-        ready,
-        inStage,
-        animating,
-      }),
-      uid: instance.uid,
-      translateItem,
-    })
-  })
+  const carouselItemContext = {
+    props,
+    states: reactive({
+      hover,
+      translate,
+      scale,
+      active,
+      ready,
+      inStage,
+      animating,
+    }),
+    uid: instance.uid,
+    getVnode: () => instance.vnode,
+    translateItem,
+  }
 
-  onUnmounted(() => {
-    carouselContext.removeItem(instance.uid)
+  carouselContext.addItem(carouselItemContext)
+
+  onBeforeUnmount(() => {
+    carouselContext.removeItem(carouselItemContext)
   })
 
   return {

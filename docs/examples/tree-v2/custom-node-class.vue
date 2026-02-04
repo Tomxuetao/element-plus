@@ -9,10 +9,7 @@
 </template>
 
 <script lang="ts" setup>
-import type {
-  TreeNode,
-  TreeNodeData,
-} from 'element-plus/es/components/tree-v2/src/types'
+import type { TreeNode, TreeNodeData } from 'element-plus'
 
 interface Tree {
   id?: string
@@ -80,8 +77,9 @@ const data: Tree[] = [
 ]
 </script>
 
-<style>
-.is-penultimate > .el-tree-node__content {
-  color: var(--el-color-primary);
+<style scoped>
+:deep(.is-penultimate .el-tree-node__label) {
+  color: #626aef;
+  font-weight: 600;
 }
 </style>

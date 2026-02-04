@@ -12,13 +12,14 @@
       :height="height"
       :item-size="treeNodeSize"
       :perf-mode="perfMode"
+      :scrollbar-always-on="scrollbarAlwaysOn"
     >
       <template #default="{ data, index, style }">
         <el-tree-node
           :key="data[index].key"
           :style="style"
           :node="data[index]"
-          :expanded="isExpanded(data[index])"
+          :expanded="data[index].expanded"
           :show-checkbox="showCheckbox"
           :checked="isChecked(data[index])"
           :indeterminate="isIndeterminate(data[index])"
@@ -50,13 +51,38 @@ import { formItemContextKey } from '@element-plus/components/form'
 import { FixedSizeList } from '@element-plus/components/virtual-list'
 import { useTree } from './composables/useTree'
 import ElTreeNode from './tree-node.vue'
-import { ROOT_TREE_INJECTION_KEY, treeEmits, treeProps } from './virtual-tree'
+import {
+  ROOT_TREE_INJECTION_KEY,
+  TreeOptionsEnum,
+  treeEmits,
+} from './virtual-tree'
+import { mutable } from '@element-plus/utils'
+
+import type { TreeProps } from './types'
 
 defineOptions({
   name: 'ElTreeV2',
 })
 
-const props = defineProps(treeProps)
+const props = withDefaults(defineProps<TreeProps>(), {
+  data: () => mutable([]),
+  height: 200,
+  props: () =>
+    mutable({
+      children: TreeOptionsEnum.CHILDREN,
+      label: TreeOptionsEnum.LABEL,
+      disabled: TreeOptionsEnum.DISABLED,
+      value: TreeOptionsEnum.KEY,
+      class: TreeOptionsEnum.CLASS,
+    }),
+  defaultCheckedKeys: () => mutable([]),
+  defaultExpandedKeys: () => mutable([]),
+  indent: 16,
+  itemSize: 26,
+  expandOnClickNode: true,
+  checkOnClickLeaf: true,
+  perfMode: true,
+})
 const emit = defineEmits(treeEmits)
 
 const slots = useSlots()
@@ -79,7 +105,6 @@ const {
   isNotEmpty,
   listRef,
   toggleExpand,
-  isExpanded,
   isIndeterminate,
   isChecked,
   isDisabled,

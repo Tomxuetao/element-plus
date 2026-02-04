@@ -1,5 +1,5 @@
 <template>
-  <el-timeline style="max-width: 600px">
+  <el-timeline>
     <el-timeline-item
       v-for="(activity, index) in activities"
       :key="index"
@@ -17,6 +17,7 @@
 
 <script lang="ts" setup>
 import { MoreFilled } from '@element-plus/icons-vue'
+
 import type { TimelineItemProps } from 'element-plus'
 
 interface ActivityType extends Partial<TimelineItemProps> {

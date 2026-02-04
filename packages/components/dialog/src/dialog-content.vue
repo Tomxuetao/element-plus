@@ -37,38 +37,48 @@ import { FOCUS_TRAP_INJECTION_KEY } from '@element-plus/components/focus-trap'
 import { useDraggable, useLocale } from '@element-plus/hooks'
 import { CloseComponents, composeRefs } from '@element-plus/utils'
 import { dialogInjectionKey } from './constants'
-import { dialogContentEmits, dialogContentProps } from './dialog-content'
+import {
+  dialogContentEmits,
+  dialogContentPropsDefaults,
+} from './dialog-content'
+
+import type { DialogContentProps } from './dialog-content'
 
 const { t } = useLocale()
 const { Close } = CloseComponents
 
 defineOptions({ name: 'ElDialogContent' })
-const props = defineProps(dialogContentProps)
+const props = withDefaults(
+  defineProps<DialogContentProps>(),
+  dialogContentPropsDefaults
+)
 defineEmits(dialogContentEmits)
 
 const { dialogRef, headerRef, bodyId, ns, style } = inject(dialogInjectionKey)!
 const { focusTrapRef } = inject(FOCUS_TRAP_INJECTION_KEY)!
 
-const dialogKls = computed(() => [
-  ns.b(),
-  ns.is('fullscreen', props.fullscreen),
-  ns.is('draggable', props.draggable),
-  ns.is('align-center', props.alignCenter),
-  { [ns.m('center')]: props.center },
-])
-
 const composedDialogRef = composeRefs(focusTrapRef, dialogRef)
 
-const draggable = computed(() => props.draggable)
-const overflow = computed(() => props.overflow)
-const { resetPosition } = useDraggable(
+const draggable = computed(() => !!props.draggable)
+const overflow = computed(() => !!props.overflow)
+const { resetPosition, updatePosition, isDragging } = useDraggable(
   dialogRef,
   headerRef,
   draggable,
   overflow
 )
 
+const dialogKls = computed(() => [
+  ns.b(),
+  ns.is('fullscreen', props.fullscreen),
+  ns.is('draggable', draggable.value),
+  ns.is('dragging', isDragging.value),
+  ns.is('align-center', !!props.alignCenter),
+  { [ns.m('center')]: props.center },
+])
+
 defineExpose({
   resetPosition,
+  updatePosition,
 })
 </script>

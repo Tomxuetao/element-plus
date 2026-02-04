@@ -12,7 +12,7 @@ import { notificationTypes } from './notification'
 
 import type { Ref, VNode } from 'vue'
 import type {
-  NotificationOptions,
+  NotificationPosition,
   NotificationProps,
   NotificationQueue,
   Notify,
@@ -20,10 +20,7 @@ import type {
 } from './notification'
 
 // This should be a queue but considering there were `non-autoclosable` notifications.
-const notifications: Record<
-  NotificationOptions['position'],
-  NotificationQueue
-> = {
+const notifications: Record<NotificationPosition, NotificationQueue> = {
   'top-left': [],
   'top-right': [],
   'bottom-left': [],
@@ -84,8 +81,8 @@ const notify: NotifyFn & Partial<Notify> = function (options = {}, context) {
     isFunction(props.message)
       ? props.message
       : isVNode(props.message)
-      ? () => props.message
-      : null
+        ? () => props.message
+        : null
   )
   vm.appContext = isUndefined(context) ? notify._context : context
 
@@ -129,7 +126,7 @@ notificationTypes.forEach((type) => {
  */
 export function close(
   id: string,
-  position: NotificationOptions['position'],
+  position: NotificationPosition,
   userOnClose?: (vm: VNode) => void
 ): void {
   // maybe we can store the index when inserting the vm to notification list.
@@ -170,7 +167,18 @@ export function closeAll(): void {
   }
 }
 
+export function updateOffsets(position: NotificationPosition = 'top-right') {
+  let verticalOffset =
+    notifications[position][0]?.vm.component?.props?.offset || 0
+
+  for (const { vm } of notifications[position]) {
+    vm.component!.props.offset = verticalOffset
+    verticalOffset += (vm.el?.offsetHeight || 0) + GAP_SIZE
+  }
+}
+
 notify.closeAll = closeAll
+notify.updateOffsets = updateOffsets
 notify._context = null
 
 export default notify as Notify

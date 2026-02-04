@@ -10,17 +10,18 @@ import { useNamespace } from '@element-plus/hooks'
 
 import type { Component, VNode } from 'vue'
 
-defineOptions({
-  name: 'ElContainer',
-})
-const props = defineProps({
+interface ContainerProps {
   /**
    * @description layout direction for child elements
    */
-  direction: {
-    type: String,
-  },
+  direction?: 'horizontal' | 'vertical'
+}
+
+defineOptions({
+  name: 'ElContainer',
 })
+
+const props = defineProps<ContainerProps>()
 const slots = useSlots()
 
 const ns = useNamespace('container')

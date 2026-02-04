@@ -210,14 +210,20 @@ describe('Carousel', () => {
         state.val = val
         state.oldVal = prevVal
       },
-      interval: 100,
       'motion-blur': true,
     })
 
     await nextTick()
-    await wait(100)
-    const items = wrapper.vm.$el.querySelectorAll('.el-transitioning')
-    expect(items.length).toBe(1)
+
+    const el = wrapper.vm.$el.querySelector('.el-carousel__container')
+
+    let event = new Event('transitionstart')
+    el.dispatchEvent(event)
+    expect(el.classList.contains('el-transitioning')).toBe(true)
+
+    event = new Event('transitionend')
+    el.dispatchEvent(event)
+    expect(el.classList.contains('el-transitioning')).toBe(false)
   })
 
   it('should guarantee order of indicators', async () => {
@@ -373,5 +379,73 @@ describe('Carousel', () => {
     expect(vm.$refs.carousel.activeIndex).toBe(2)
     vm.$refs.carousel.next()
     expect(vm.$refs.carousel.activeIndex).toBe(3)
+  })
+
+  it('two item, activeIndex is not a supplementary item', async () => {
+    const data = [100, 200]
+
+    wrapper = mount({
+      setup() {
+        return () => (
+          <div>
+            <Carousel ref={'carousel'}>
+              {data.map((value) => (
+                <CarouselItem label={value} key={value}>
+                  {value}
+                </CarouselItem>
+              ))}
+            </Carousel>
+          </div>
+        )
+      },
+    })
+
+    await nextTick()
+    const vm = wrapper.vm
+
+    expect(vm.$refs.carousel.activeIndex).toBe(0)
+    vm.$refs.carousel.next()
+    expect(vm.$refs.carousel.activeIndex).toBe(1)
+    vm.$refs.carousel.next()
+    expect(vm.$refs.carousel.activeIndex).toBe(0)
+    vm.$refs.carousel.prev()
+    expect(vm.$refs.carousel.activeIndex).toBe(1)
+  })
+
+  it('should continue auto play after adding new items dynamically', async () => {
+    const data = reactive([1, 2, 3])
+
+    wrapper = mount({
+      setup() {
+        return () => (
+          <div>
+            <Carousel interval={30} ref={'carousel'}>
+              {data.map((value) => (
+                <CarouselItem label={value} key={value}>
+                  {value}
+                </CarouselItem>
+              ))}
+            </Carousel>
+          </div>
+        )
+      },
+    })
+
+    await nextTick()
+    const vm = wrapper.vm
+
+    expect(vm.$refs.carousel.activeIndex).toBe(0)
+
+    await wait(40)
+    expect(vm.$refs.carousel.activeIndex).toBe(1)
+
+    data.push(4)
+    await nextTick()
+
+    expect(wrapper.findAll('.el-carousel__item').length).toBe(4)
+    expect(vm.$refs.carousel.activeIndex).toBe(0)
+
+    await wait(80)
+    expect(vm.$refs.carousel.activeIndex).toBe(2)
   })
 })
